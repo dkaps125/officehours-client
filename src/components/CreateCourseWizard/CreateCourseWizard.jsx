@@ -10,6 +10,10 @@ class CreateCourseWizard extends React.Component {
       //ohURL: '',
       numTokens: 2,
       requiresPasscode: true*/
+      semester: {
+        term: 'Fall',
+        year: 2018
+      }
     };
 
     //const user = props.client.get('user');
@@ -36,42 +40,83 @@ class CreateCourseWizard extends React.Component {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
-
-    this.setState({
-      [name]: value
-    });
+    if (name === 'term') {
+      var semester = this.state.semester;
+      semester.term = value;
+      this.setState({
+        semester
+      });
+    } else if (name === 'year') {
+      var semester = this.state.semester;
+      semester.year = parseInt(value);
+      this.setState({
+        semester
+      });
+    } else {
+      this.setState({
+        [name]: value
+      });
+    }
   }
 
   createCourse = event => {
     event.preventDefault();
 
+    var course = this.state;
+
+    if (!course.title && !!course.courseid) {
+      course.title = course.courseid;
+    }
+
     const client = this.props.client;
 
-    client.service('/course').create(this.state)
+    client.service('/courses').create(course)
     .then(course => {
       toastr.success("Course successfully created");
       // TODO: redirect to course page
     });
 
-    this.setState({});
+    //this.setState({});
+    this.props.history.push('/courses');
 
   }
 
   render() {
     return <div className="row" style={{paddingTop:"15px"}}>
       <div className="col-md-9">
-        <h3>Create a course</h3>
+        <h2>Create a course</h2>
+        <br />
         <form onSubmit={this.createCourse}>
           <div className="form-group">
-            <label htmlFor="courseName">Course id</label>
+            <label htmlFor="courseid">Course id</label>
             <input type="text" className="form-control" id="courseid" name="courseid"
               placeholder="CMSC330" onChange={this.handleInputChange} required/>
           </div>
           <div className="form-group">
-            <label htmlFor="courseName">Course title</label>
-            <input type="text" className="form-control" id="courseName" name="courseName"
+            <label htmlFor="title">Course title</label>
+            <input type="text" className="form-control" id="title" name="title"
               placeholder="Organization of Pogramming Languages"
               onChange={this.handleInputChange} />
+          </div>
+          <div className="form-group row">
+            <div className="col-md-3">
+              <label htmlFor="term">Semester</label>
+              <select className="form-control inline" id="numTokens" name="term"
+                onChange={this.handleInputChange} value={this.state.semester.term}>
+                <option>Spring</option>
+                <option>Summer</option>
+                <option>Fall</option>
+                <option>Winter</option>
+              </select>
+            </div>
+            <div className="col-md-3">
+              <label htmlFor="year">Year</label>
+              <select className="form-control" id="numTokens" name="year"
+                onChange={this.handleInputChange} value={this.state.semester.year}>
+                <option>2018</option>
+                <option>2019</option>
+              </select>
+            </div>
           </div>
           <div className="form-group">
             <label htmlFor="courseURL">Schedule URL</label>

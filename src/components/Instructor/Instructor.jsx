@@ -62,7 +62,7 @@ class Instructor extends React.Component {
 
   render() {
     return <div className="row" style={{paddingTop:"15px"}}>
-      {this.props.authenticated == false && <Redirect to='/login' />}
+      {this.props.authenticated === false && <Redirect to='/login' />}
       <div className="col-md-3">
         <h3>Dashboard</h3>
         <AvailableTas client={this.props.client} hideCount={true} />

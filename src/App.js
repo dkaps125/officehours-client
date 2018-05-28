@@ -1,13 +1,14 @@
 import React from 'react';
-import { BrowserRouter as Router, Route, Link, Redirect } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Link, Redirect, withRouter } from 'react-router-dom';
 import Ta from './components/Ta';
 import Student from './components/Student';
 import Login from './components/Login';
 import Instructor from './components/Instructor';
 import TicketHistory from './components/TicketHistory';
 import UserDetails from './components/UserDetails';
-import ManageCourses from './components/ManageCourses';
+//import ManageCourses from './components/ManageCourses';
 import CreateCourseWizard from './components/CreateCourseWizard';
+import ListCourses from './components/ListCourses';
 
 const io = require('socket.io-client');
 const feathers = require('@feathersjs/feathers');
@@ -51,12 +52,10 @@ class App extends React.Component {
       client.on('reauthentication-error', () => {console.error("REAUTH ERROR!")});
     })
     .catch((err) => {
-      console.log('NOT AUTH')
       if (err.name === 'NotAuthenticated') {
-
         this.setState({authenticated: false});
       }
-      console.error(err)
+      console.error(err);
     });
     this.state = {client};
   }
@@ -64,53 +63,27 @@ class App extends React.Component {
   componentDidMount() {
 
   }
-  //<Route exact path="/" render={(routeProps) => ()} component={Login}/>
-  //<Route exact path="/" component={Login}/>
 
-  /*
-  else if (this.state.user.role === "Instructor") {
-    return <Redirect to={{pathname:'/ta', state: {from: this.props.location}}} />
-  } else if (this.state.user.role === "TA") {
-    return <Redirect to={{pathname:'/ta', state: {from: this.props.location}}} />
-  } else if (this.state.user.role === "Student") {
-    return <Redirect to={{pathname:'/student', state: {from: this.props.location}}} />
-  } else {
-    return <Redirect to={{pathname:'/login', state: {from: this.props.location}}} />
+  setCourse = (course) => {
+
   }
-  */
-          /*went in render below <Route exact path="/" user={this.state.user} render={(props) => {
-              console.log(this.props.user);
-            return !props.user ? (
-              <Redirect to={{pathname: "/login", state: {user:props.user}}} />
-            ) : (
-              user.role === 'TA' ? (
-                <Redirect to="/ta" />
-              ) : (
-                user.role === 'Instructor' ? (
-                  <Redirect to="/ta" />
-                ) : (
-                  <Redirect to="/student" />
-                )
-              )
-            )
-          }} />*/
 
   render() {
     return <Router>
       <div>
-        <Nav client={this.state.client} location={this.props.location} />
+        <Nav client={this.state.client} location={this.props.location} course={this.state.course} />
         <div id="main" className="container login-container">
           {
             this.state.authenticated === true ? (<div>
               <FeathersRoute exact path="/" client={this.state.client} component={Login} />
+              <FeathersRoute exact path="/courses" client={this.state.client} forRoles={["Instructor"]} component={ListCourses} />
+              <FeathersRoute path="/courses/create" client={this.state.client} forRoles={["Instructor"]} component={CreateCourseWizard} />
               <FeathersRoute path="/login" client={this.state.client} component={Login} />
               <FeathersRoute path="/instructor" client={this.state.client} forRoles={["Instructor"]} component={Instructor} />
               <FeathersRoute path="/ta" client={this.state.client} forRoles={["Instructor", "TA"]} component={Ta} />
               <FeathersRoute path="/student" client={this.state.client} forRoles={["Student"]} component={Student} />
               <FeathersRoute path="/tickets" client={this.state.client} forRoles={["Instructor", "TA"]} component={TicketHistory} />
               <FeathersRoute path="/user" client={this.state.client} forRoles={["Instructor", "TA"]} component={UserDetails} />
-              <FeathersRoute exact path="/courses" client={this.state.client} forRoles={["Instructor"]} component={ManageCourses} />
-              <FeathersRoute path="/courses/create" client={this.state.client} forRoles={["Instructor"]} component={CreateCourseWizard} />
             </div>
           ) : <Login client={this.state.client} />
           }
@@ -189,7 +162,7 @@ class Nav extends React.Component {
             <span className="icon-bar"></span>
           </button>
           <a className="navbar-brand dropdown-toggle" data-toggle="dropdown" href="#">
-            CMSC131 Office Hours
+            {!!this.props.course ? this.props.course + ' Office Hours' : 'Office Hours'}
             <span className="caret"></span></a>
               <ul className="dropdown-menu" style={{marginLeft: "25px"}}>
                 <li><a>Recent courses:</a></li>
@@ -232,8 +205,9 @@ class Nav extends React.Component {
       </div>
     </nav>
   }
-
 }
+
+const RoutedNav = withRouter(Nav);
 
 class LoginContainer extends React.Component {
   constructor(props) {

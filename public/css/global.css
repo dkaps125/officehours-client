@@ -34,6 +34,9 @@ body {
   padding-top: 60px;
   z-index: 1000; }
 
+.gray {
+  color: 'gray'; }
+
 /* login */
 .login-body {
   background-image: url("/login-bg.jpg");
@@ -165,3 +168,9 @@ body {
   cursor: move;
   fill: none;
   pointer-events: all; }
+
+.fixedButton {
+  position: fixed;
+  bottom: 25px;
+  right: 30px;
+  border-radius: 15px; }
