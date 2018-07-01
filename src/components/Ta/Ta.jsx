@@ -237,7 +237,11 @@ class Ta extends React.Component {
 
       </div>
         <div className="col-md-9">
-          <p className="lead">Students in queue: <strong id="students-in-queue">{this.state.studentsInQueue}</strong></p>
+          <p className="lead">Students in queue:
+            <strong id="students-in-queue">
+              {this.state.studentsInQueue}
+            </strong>
+          </p>
           <hr />
           {
             this.state.onDuty ? <div>

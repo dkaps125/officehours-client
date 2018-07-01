@@ -73,3 +73,9 @@ export function formatTime(date) {
     return months[then.getMonth()] + ' ' + then.getDate();
   }
 }
+
+export function getCourse(props) {
+  const matches = props.location.pathname.match(/^\/(\w+)\/.*/);
+
+  return (!!matches && matches.length >= 2 ? matches[1] : null );
+}

@@ -8,6 +8,8 @@ import UserRoster from './UserRoster.jsx';
 import StudentStats from './StudentStats.jsx';
 import toastr from 'toastr';
 
+import { getCourse } from '../../Utils';
+
 class Instructor extends React.Component {
   constructor(props) {
     super(props);
@@ -23,6 +25,7 @@ class Instructor extends React.Component {
     this.loadUserRoster();
 
     // Don't toast because QueuedStudentsTable toasts for us
+
   }
 
   componentWillUnmount() {

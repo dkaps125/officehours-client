@@ -3,28 +3,10 @@ import toastr from 'toastr';
 import { Link } from 'react-router-dom';
 
 class ListCourses extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-    };
-
-  }
-
-  componentWillUnmount() {
-
-  }
+  state = {};
 
   componentDidMount() {
     this.getCourses();
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-
-  }
-
-  toastAndUpdate = (msg, cb) => {
-    toastr.success(msg);
-    cb();
   }
 
   getMyCourses = () => {
@@ -44,6 +26,39 @@ class ListCourses extends React.Component {
     }).catch(console.error);
   }
 
+  routeForRole = (role) => {
+    switch(role) {
+      case 'Admin':
+      case 'Instructor':
+        return 'instructor';
+        break;
+      case 'TA':
+        return 'ta';
+        break;
+      case 'Student':
+      default:
+        return 'student';
+    }
+  }
+
+  selectCourse = (course) => {
+    localStorage.setItem('lastCourse', course.courseid);
+    this.props.history.push(course.courseid + '/' + this.routeForRole(this.props.client.get('user').role));
+  }
+
+  courseListing = (course) => {
+    return (
+      <div className="panel panel-danger" key={course.toString()}>
+        <div className="panel-heading">
+          <h3 className="panel-title">{course.courseid}</h3>
+        </div>
+        <div onClick={() => {this.selectCourse(course)}} style={{cursor:'pointer'}} className="panel-body">
+          {course.semester.term + ' ' + course.semester.year}
+        </div>
+      </div>
+    )
+  }
+
   render() {
     const user = this.props.client.get('user');
     return <div className="row" style={{paddingTop:"15px"}}>
@@ -51,22 +66,18 @@ class ListCourses extends React.Component {
         <h2>Select a course</h2>
         <br />
         {
-          !!this.state.courses ? <ul>{this.state.courses.map(course => {
-            return <div className="panel panel-danger" key={course.toString()}>
-              <div className="panel-heading">
-                <h3 className="panel-title">{course.courseid}</h3>
-              </div>
-              <div className="panel-body">
-                {course.semester.term + ' ' + course.semester.year}
-              </div>
-
-            </div>
-          })}</ul> : <h4><br />No courses available</h4>
+          !!this.state.courses ? (
+            <ul>
+              {
+                this.state.courses.map(course => (this.courseListing(course)))
+              }
+            </ul>
+          ) : <h4><br />No courses available</h4>
         }
         {
           // instructor legacy, TODO remove
           (user.role === 'Instructor' || user.role === 'Admin') &&
-          <Link className="btn btn-info btn-lg fixedButton" to='/courses/create'>
+          <Link className="btn btn-info btn-lg fixedButton" to='/create_course'>
             <strong>+</strong> Course
           </Link>
         }

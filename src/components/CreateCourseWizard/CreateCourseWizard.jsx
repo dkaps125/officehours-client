@@ -40,14 +40,15 @@ class CreateCourseWizard extends React.Component {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
+    let semester;
     if (name === 'term') {
-      var semester = this.state.semester;
+      semester = this.state.semester;
       semester.term = value;
       this.setState({
         semester
       });
     } else if (name === 'year') {
-      var semester = this.state.semester;
+      semester = this.state.semester;
       semester.year = parseInt(value);
       this.setState({
         semester
