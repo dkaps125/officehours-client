@@ -65,11 +65,13 @@ class Ta extends React.Component {
 
   updateQueueCount = () => {
     const client = this.props.client;
-    client.service('/tokens').find({query:
-      {
-        $limit: 0,
-        fulfilled: false,
-      }
+    client.service('/tokens').find({
+      query:
+        {
+          $limit: 0,
+          fulfilled: false,
+        },
+      course: 'cmsc123'
     }).then(tickets => {
       console.log({studentsInQueue: tickets.total})
       this.setState({studentsInQueue: tickets.total});
@@ -83,7 +85,7 @@ class Ta extends React.Component {
   toggleOH = () => {
     const client = this.props.client;
     const onDuty = !this.state.onDuty;
-    client.service('/users').patch(client.get('user')._id, {onDuty})
+    client.service('/users').patch(client.get('user')._id, {onDuty, query: {course:'cmsc123'}})
     .then(newMe => {
       onDuty ? toastr.success("You are now in office hours") :
         toastr.success("You have left office hours");

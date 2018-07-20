@@ -65,15 +65,11 @@ class App extends React.Component {
 
   }
 
-  setCourse = (course) => {
-
-  }
-
   render() {
     return (
       <Router>
       <div>
-        <RoutedNav client={this.state.client} course={this.state.course} />
+        <RoutedNav client={this.state.client} />
         <div id="main" className="container login-container">
           {
             this.state.authenticated === true ? (<div>
@@ -101,7 +97,7 @@ const FeathersRoute = ({ component: Component, client, ...rest }) => (
   <Route
     {...rest}
     render={props =>
-      (<Component {...props} client={client} />)
+      (<Component {...props} client={client} course={getCourse(props)}/>)
     }
   />
 )
@@ -144,6 +140,7 @@ class Nav extends React.Component {
 
   logout = () => {
     this.props.client.logout().then(() => {
+      // TODO: probably handle global user state a better way
       window.location.reload();
     });
   }
@@ -156,7 +153,7 @@ class Nav extends React.Component {
   // TODO: <li className="active"> <span className="sr-only">(current)</span>
   render() {
     const course = getCourse(this.props);
-    console.log('nav course', course, this.props);
+
     return <nav className="navbar">
       <div className="container-fluid">
         <div className="navbar-header">
@@ -216,40 +213,5 @@ class Nav extends React.Component {
 }
 
 const RoutedNav = withRouter(Nav);
-
-class LoginContainer extends React.Component {
-  constructor(props) {
-    super(props);
-    this.state = {
-
-    };
-
-    props.client.on('authWithUser', (user) => {
-      console.log(user);
-      this.setState({user});
-    });
-  }
-
-  componentDidMount() {
-
-  }
-
-  render() {
-    /*if (!this.state.user) {
-      return <Login />;
-    } else if (this.state.user.role === "TA") {
-        //return <Ta client={this.props.client} user={this.state.user} />
-    } else if (this.state.user.role === "Instructor") {
-        //return <Ta client={this.props.client} />
-    }
-    //return <Student client={this.props.client} user={this.state.user} />
-    */
-    /*if (!this.state.user ) {
-      return <Redirect to={{pathname:'/login', state: {from: this.props.location}}} />
-    } */
-
-    return this.props.children;
-  }
-}
 
 export default App

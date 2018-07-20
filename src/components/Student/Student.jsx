@@ -34,9 +34,13 @@ class Student extends React.Component {
   setNumTokens = () => {
     const client = this.props.client;
     const getNumToks = client.service('/numtokens').get({});
-    const getUnfulfilledToks = client.service('/tokens').find(
-      { query: { fulfilled: false, $limit:0 } }
-    );
+    const getUnfulfilledToks = client.service('/tokens').find({
+      query: {
+        fulfilled: false,
+        $limit:0,
+        course: this.props.courseId
+      }
+    });
     const getQueuePos = client.service('/queue-position').get({});
     const getCurrentTicket =  client.service('/tokens').find({
       query: {
@@ -45,7 +49,8 @@ class Student extends React.Component {
         isBeingHelped: true,
         $sort: {
           createdAt: 1
-        }
+        },
+        course: this.props.courseId
       }
     });
 
@@ -177,6 +182,7 @@ class Student extends React.Component {
   }
 
 render() {
+  console.log('stu propd', this.props);
   return <div className="row" style={{paddingTop:"15px"}}>
     <div className="col-md-3">
       <AvailableTas client={this.props.client} />
