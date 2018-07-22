@@ -9,9 +9,9 @@ import UserDetails from "./components/UserDetails";
 //import ManageCourses from './components/ManageCourses';
 import CreateCourseWizard from "./components/CreateCourseWizard";
 import ListCourses from "./components/ListCourses";
-import { getCourse } from "./Utils";
+import { getCourse, isString } from "./Utils";
 
-import { defaultContext, UserContext, withUser } from "./api/UserStore";
+import { defaultContext, UserContext, withUser, withUserRequireCourse } from "./api/UserStore";
 
 const io = require("socket.io-client");
 const feathers = require("@feathersjs/feathers");
@@ -22,8 +22,22 @@ const ConnectedLogin = withUser(Login);
 
 class App extends React.Component {
   setCourse = course => {
-    localStorage.setItem("lastCourse", course.courseid);
-    this.setState({ course });
+    if (!!course && isString(course.courseid) && isString(course._id)) {
+      localStorage.setItem('lastCourse', course);
+      this.setState({ course });
+    } else {
+      localStorage.removeItem('lastCourse');
+      this.setState({ course: null });
+    }
+  };
+
+  // TODO: call when exiting to a container without course required
+  popCourse = () => {
+    const { course } = this.state;
+    if (!!course && isString(course.courseid) && isString(course._id)) {
+      localStorage.setItem('lastCourse', course);
+    }
+    this.setState({course: null});
   };
 
   logout = () => {
@@ -70,7 +84,8 @@ class App extends React.Component {
         client.set("user", user);
         // TODO: phase out this garbage global call
         client.emit("authWithUser", user);
-        const course = localStorage.getItem('lastCourse');
+        const course = localStorage.getItem("lastCourse");
+        console.log("login, course", course);
         course && this.setCourse(course);
         this.setState({ user, authenticated: true });
       })
@@ -82,10 +97,10 @@ class App extends React.Component {
         }
       });
 
-      client.on("reauthentication-error", err => {
-        console.error("Reauth error", err);
-        this.setState({ user: null, authenticated: false });
-      });
+    client.on("reauthentication-error", err => {
+      console.error("Reauth error", err);
+      this.setState({ user: null, authenticated: false });
+    });
   }
 
   render() {
@@ -102,10 +117,18 @@ class App extends React.Component {
                   <ConnectedRoute exact path="/courses" forRoles={["Instructor"]} component={ListCourses} />
                   <ConnectedRoute path="/create_course" forRoles={["Instructor"]} component={CreateCourseWizard} />
                   <ConnectedRoute path="/login" component={Login} />
-                  <ConnectedRoute path="/:course/instructor/" forRoles={["Instructor"]} component={Instructor} />
-                  <ConnectedRoute path="/:course/ta" forRoles={["Instructor", "TA"]} component={Ta} />
-                  <ConnectedRoute path="/:course/student" forRoles={["Student"]} component={Student} />
-                  <ConnectedRoute path="/:course/tickets" forRoles={["Instructor", "TA"]} component={TicketHistory} />
+                  <ConnectedRouteRequireCourse
+                    path="/:course/instructor/"
+                    forRoles={["Instructor"]}
+                    component={Instructor}
+                  />
+                  <ConnectedRouteRequireCourse path="/:course/ta" forRoles={["Instructor", "TA"]} component={Ta} />
+                  <ConnectedRouteRequireCourse path="/:course/student" forRoles={["Student"]} component={Student} />
+                  <ConnectedRouteRequireCourse
+                    path="/:course/tickets"
+                    forRoles={["Instructor", "TA"]}
+                    component={TicketHistory}
+                  />
                   <ConnectedRoute path="/user" forRoles={["Instructor", "TA"]} component={UserDetails} />
                 </React.Fragment>
               ) : (
@@ -125,6 +148,17 @@ const ConnectedRoute = ({ component: Component, ...rest }) => (
     {...rest}
     render={props => {
       const ConnectedComponent = withUser(Component);
+      return <ConnectedComponent {...props} />;
+    }}
+  />
+);
+
+// Same behavior as ConnectedRoute require a course to be selected
+const ConnectedRouteRequireCourse = ({ component: Component, ...rest }) => (
+  <Route
+    {...rest}
+    render={props => {
+      const ConnectedComponent = withUserRequireCourse(Component);
       return <ConnectedComponent {...props} />;
     }}
   />
@@ -209,7 +243,7 @@ class Nav extends React.Component {
           </div>
           <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul className="nav navbar-nav">
-              {course && this.state.roles.includes("Instructor") && this.genLink("instructor", "Instructor Home")}
+              {course && roles.includes("Instructor") && this.genLink("instructor", "Instructor Home")}
               {course && (roles.includes("Instructor") || roles.includes("TA")) && this.genLink("ta", "TA Home")}
               {course &&
                 (roles.includes("Instructor") || roles.includes("TA")) &&

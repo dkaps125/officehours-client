@@ -110,3 +110,7 @@ export function getCourse(props) {
 export function getCourseId() {
   return localStorage.get("courseId");
 }
+
+export function isString(maybeStr) {
+  return (typeof maybeStr === 'string' || maybeStr instanceof String);
+}

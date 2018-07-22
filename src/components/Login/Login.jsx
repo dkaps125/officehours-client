@@ -38,9 +38,7 @@ class Login extends React.Component {
     if ((!course && !route) || (route === '/')) {
       return '/courses';
     }
-
     return route;
-
   }
 
   render() {

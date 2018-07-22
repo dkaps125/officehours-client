@@ -105,7 +105,7 @@ class StudentStats extends React.Component {
         });
       })
       .then(res => {
-        const taSessionsPerWeek = precisionRoundDecimals(res[0].avgTotal || 0);
+        const taSessionsPerWeek = precisionRoundDecimals((res[0] && res[0].avgTotal) || 0);
         this.setState({ taSessionsPerWeek });
         return client.service("users").find({
           query: {
@@ -361,7 +361,7 @@ class StudentStats extends React.Component {
           </div>
           <div className="statsBlock">
             <div className="statsPanel">
-              <div>{this.state.waitAvg}</div>
+              <div>{this.state.waitAvg >= 0 ? this.state.waitAvg : <span>N/A</span>}</div>
             </div>
             <div className="statsFooter">
               <p className="statsText lead">Avg Wait (mins)</p>
@@ -405,12 +405,12 @@ class StudentStats extends React.Component {
               <div>{this.state.numTas >= 0 ? this.state.numTas : <span>N/A</span>}</div>
             </div>
             <div className="statsFooter">
-              <p className="statsText lead">TAs</p>
+              <p className="statsText lead">TA's & Instr's</p>
             </div>
           </div>
           <div className="statsBlock">
             <div className="statsPanel">
-              <div>{this.state.sessAvg}</div>
+              <div>{this.state.sessAvg >= 0 ? this.state.sessAvg : <span>N/A</span>}</div>
             </div>
             <div className="statsFooter">
               <p className="statsText lead">Mins/session</p>
