@@ -4,11 +4,11 @@ import toastr from 'toastr';
 class QueuedStudentsTable extends React.Component {
   constructor(props) {
     super(props);
+    console.log(props);
     this.state = {
       studentsInQueue: 0,
       studentQueue: []
     }
-
   }
 
   componentDidMount() {
@@ -28,12 +28,6 @@ class QueuedStudentsTable extends React.Component {
     socket.removeListener('tokens patched', this.ticketPatched);
   }
 
-  componentDidUpdate(oldProps, oldState) {
-    if (!oldProps.client && !!this.props.client) {
-
-    }
-  }
-
   ticketCreated = () => {
     this.updateStudentQueue();
     toastr.success('New ticket created');
@@ -50,6 +44,7 @@ class QueuedStudentsTable extends React.Component {
       {
         $limit: 100,
         fulfilled: false,
+        course: this.props.course._id
       }
     }).then(tickets => {
       this.setState({studentQueue: tickets.data,

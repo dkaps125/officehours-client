@@ -18,10 +18,12 @@ const feathers = require("@feathersjs/feathers");
 const socketio = require("@feathersjs/socketio-client");
 const auth = require("@feathersjs/authentication-client");
 
+const ConnectedLogin = withUser(Login);
+
 class App extends React.Component {
   setCourse = course => {
     localStorage.setItem("lastCourse", course.courseid);
-    this.setState({course});
+    this.setState({ course });
   };
 
   logout = () => {
@@ -68,18 +70,21 @@ class App extends React.Component {
         client.set("user", user);
         // TODO: phase out this garbage global call
         client.emit("authWithUser", user);
+        const course = localStorage.getItem('lastCourse');
+        course && this.setCourse(course);
         this.setState({ user, authenticated: true });
-        client.on("reauthentication-error", (err) => {
-          console.error("Reauth error", err);
-          this.setState({ user: null, authenticated: false });
-        });
       })
       .catch(err => {
         if (err.name === "NotAuthenticated") {
           this.setState({ user: null, authenticated: false });
         } else {
-          console.error('Error on feathers auth:',err);
+          console.error("Error on feathers auth:", err);
         }
+      });
+
+      client.on("reauthentication-error", err => {
+        console.error("Reauth error", err);
+        this.setState({ user: null, authenticated: false });
       });
   }
 
@@ -104,7 +109,7 @@ class App extends React.Component {
                   <ConnectedRoute path="/user" forRoles={["Instructor", "TA"]} component={UserDetails} />
                 </React.Fragment>
               ) : (
-                <Login client={this.state.client} />
+                <ConnectedLogin />
               )}
             </div>
           </React.Fragment>
@@ -142,18 +147,21 @@ class Nav extends React.Component {
   genLink = (path, name) => {
     const { course } = this.props;
 
-    return course && course.courseid && (
-      <li>
-        <Link to={`/${course.courseid}/${path}`}>{name}</Link>
-      </li>
+    return (
+      course &&
+      course.courseid && (
+        <li>
+          <Link to={`/${course.courseid}/${path}`}>{name}</Link>
+        </li>
+      )
     );
   };
 
   // TODO: <li className="active"> <span className="sr-only">(current)</span>
   render() {
-    console.log("props in nav bar", this.props);
-    const course = getCourse(this.props);
+    const course = this.props.course && this.props.course.courseid;
     const { user } = this.props;
+    const roles = user && [user.role];
 
     return (
       <nav className="navbar">
@@ -201,14 +209,12 @@ class Nav extends React.Component {
           </div>
           <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul className="nav navbar-nav">
-              {!!course && this.state.roles.includes("Instructor") && this.genLink("instructor", "Instructor Home")}
-              {!!course &&
-                (this.state.roles.includes("Instructor") || this.state.roles.includes("TA")) &&
-                this.genLink("ta", "TA Home")}
-              {!!course &&
-                (this.state.roles.includes("Instructor") || this.state.roles.includes("TA")) &&
+              {course && this.state.roles.includes("Instructor") && this.genLink("instructor", "Instructor Home")}
+              {course && (roles.includes("Instructor") || roles.includes("TA")) && this.genLink("ta", "TA Home")}
+              {course &&
+                (roles.includes("Instructor") || roles.includes("TA")) &&
                 this.genLink("tickets", "Ticket History")}
-              {!!course && this.state.roles.includes("Student") && this.genLink("students", "Home")}
+              {course && roles.includes("Student") && this.genLink("students", "Home")}
               {!course && (
                 <li>
                   <Link to="/courses">Select a course</Link>
