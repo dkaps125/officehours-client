@@ -64,6 +64,7 @@ class CreateCourseWizard extends React.Component {
     event.preventDefault();
 
     var course = this.state;
+    const { user } = this.props;
 
     if (!course.title && !!course.courseid) {
       course.title = course.courseid;
@@ -73,12 +74,27 @@ class CreateCourseWizard extends React.Component {
 
     client.service('/courses').create(course)
     .then(course => {
-      toastr.success("Course successfully created");
       // TODO: redirect to course page
-    });
+      return client.service('/users').patch(user._id, {
+        $push: {
+          roles: {
+            privilege: 'Instructor',
+            course: course._id,
+            totalTickets: 0
+          },
+        }
+      })
+    })
+    .then(user => {
+      toastr.success("Course successfully created");
+      this.props.history.push(`/courses/${course.courseid}/instructor/`);
+    })
+    .catch(error => {
+      toastr.error("Could not create course ", error)
+    })
 
     //this.setState({});
-    this.props.history.push('/courses');
+
 
   }
 

@@ -1,5 +1,5 @@
 import React from "react";
-import { genUserElt } from "../../Utils";
+import { genUserElt, privForUser } from "../../Utils";
 import toastr from "toastr";
 
 class UserRoster extends React.Component {
@@ -25,7 +25,41 @@ class UserRoster extends React.Component {
   };
 
   sortTable = byColumn => {
-    /* TODO */
+    /* TODO @dkaps please */
+  };
+
+  makeUserRow = (user, row) => {
+    const { course } = this.props;
+    const userIsMe = this.props.user._id === user._id;
+    const role = privForUser(user, course);
+
+    return (
+      <tr key={row}>
+        <td>{row + 1}</td>
+        <td>
+          {genUserElt(user, user.directoryID)}
+          {userIsMe && <a style={{ color: "gray" }}> (Me)</a>}
+        </td>
+        <td>
+          {genUserElt(user, user.name || user.directoryID)}
+          {userIsMe && <a style={{ color: "gray" }}> (Me)</a>}
+        </td>
+        <td>{role}</td>
+        <td>
+          {!userIsMe ? (
+            <a
+              onClick={() => {
+                this.deleteUser(user._id);
+              }}
+            >
+              Delete ✖
+            </a>
+          ) : (
+            <a style={{ color: "gray" }}>Delete ✖</a>
+          )}
+        </td>
+      </tr>
+    );
   };
 
   render() {
@@ -69,39 +103,7 @@ class UserRoster extends React.Component {
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>
-            {!!this.props.userRoster &&
-              this.props.userRoster.map((user, row) => {
-                const userIsMe = this.props.user._id === user._id;
-                return (
-                  <tr key={row}>
-                    <td>{row + 1}</td>
-                    <td>
-                      {genUserElt(user, user.directoryID)}
-                      {userIsMe && <a style={{ color: "gray" }}> (Me)</a>}
-                    </td>
-                    <td>
-                      {genUserElt(user, user.name || user.directoryID)}
-                      {userIsMe && <a style={{ color: "gray" }}> (Me)</a>}
-                    </td>
-                    <td>{user.role}</td>
-                    <td>
-                      {!userIsMe ? (
-                        <a
-                          onClick={() => {
-                            this.deleteUser(user._id);
-                          }}
-                        >
-                          Delete ✖
-                        </a>
-                      ) : (
-                        <a style={{ color: "gray" }}>Delete ✖</a>
-                      )}
-                    </td>
-                  </tr>
-                );
-              })}
-          </tbody>
+          <tbody>{this.props.userRoster && this.props.userRoster.map(this.makeUserRow)}</tbody>
         </table>
       </div>
     );

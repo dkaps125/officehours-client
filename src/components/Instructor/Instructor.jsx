@@ -36,7 +36,17 @@ class Instructor extends React.Component {
     // This is bad design.
     this.props.client
       .service("/users")
-      .find({ query: { $limit: 5000, $sort: { createdAt: -1 } } })
+      .find({
+        query: {
+          roles: {
+            $elemMatch: {
+              course: this.props.course._id
+            }
+          },
+          $limit: 5000,
+          $sort: { createdAt: -1 }
+        }
+      })
       .then(results => {
         this.setState({ userRoster: results.data });
       });

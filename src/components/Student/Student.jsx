@@ -38,7 +38,7 @@ class Student extends React.Component {
       query: {
         fulfilled: false,
         $limit:0,
-        course: this.props.courseId
+        course: this.props.course._id
       }
     });
     const getQueuePos = client.service('/queue-position').get({});
@@ -50,7 +50,7 @@ class Student extends React.Component {
         $sort: {
           createdAt: 1
         },
-        course: this.props.courseId
+        course: this.props.course._id
       }
     });
 

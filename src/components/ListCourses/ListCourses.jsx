@@ -75,11 +75,11 @@ class ListCourses extends React.Component {
         <div className="col-md-9">
           <h2>Select a course</h2>
           <br />
-          {!!this.state.courses ? (
+          {this.state.courses && this.state.courses.length > 0 ? (
             <ul>{this.state.courses.map(course => this.courseListing(course))}</ul>
           ) : (
             <h4>
-              <br />No courses available
+              <br /> No courses added yet
             </h4>
           )}
           {// instructor legacy, TODO remove

@@ -114,3 +114,16 @@ export function getCourseId() {
 export function isString(maybeStr) {
   return (typeof maybeStr === 'string' || maybeStr instanceof String);
 }
+
+export function roleForUser(user, course) {
+  const { _id : courseDbId } = course;
+  const privs = user &&
+    user.roles &&
+    user.roles.filter(role => role.course === courseDbId);
+  return privs && privs.length > 0 && privs[0];
+}
+
+export function privForUser(user, courseDbId) {
+  const role = roleForUser(user, courseDbId)
+  return role && role.privilege;
+}
