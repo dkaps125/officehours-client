@@ -41,7 +41,7 @@ export function toDataArray(hash) {
   var t = [];
 
   for (var k in hash) {
-    t.push({ x: parseInt(k), y: hash[k], date: new Date(parseInt(k)) });
+    t.push({ x: parseInt(k), y: hash[k], date: new Date(parseInt(k, 10)) });
   }
 
   return t;
@@ -77,10 +77,10 @@ export function formatTime(date) {
 
   var diff = now - then;
 
-  var seconds = parseInt(diff / 1000);
-  var minutes = parseInt(seconds / 60);
-  var hours = parseInt(minutes / 60);
-  var days = parseInt(hours / 24);
+  var seconds = parseInt(diff / 1000, 10);
+  var minutes = parseInt(seconds / 60, 10);
+  var hours = parseInt(minutes / 60, 10);
+  var days = parseInt(hours / 24, 10);
 
   if (seconds < 60) {
     return seconds + " second" + (seconds === 1 ? "" : "s") + " ago";

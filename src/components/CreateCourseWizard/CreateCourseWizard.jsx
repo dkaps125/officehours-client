@@ -49,7 +49,7 @@ class CreateCourseWizard extends React.Component {
       });
     } else if (name === 'year') {
       semester = this.state.semester;
-      semester.year = parseInt(value);
+      semester.year = parseInt(value, 10);
       this.setState({
         semester
       });

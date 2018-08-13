@@ -99,7 +99,7 @@ class UserManage extends React.Component {
             <label htmlFor="userName">Name&nbsp;</label>
             <input
               type="text"
-              autocomplete="off"
+              autoComplete="off"
               className="form-control"
               name="name"
               placeholder="John Smith"
@@ -111,7 +111,7 @@ class UserManage extends React.Component {
             <label htmlFor="directoryID">&nbsp;Directory ID&nbsp;</label>
             <input
               type="text"
-              autocomplete="off"
+              autoComplete="off"
               className="form-control"
               name="directoryID"
               placeholder="example"

@@ -22,11 +22,11 @@ const ConnectedLogin = withUser(Login);
 
 class App extends React.Component {
   setCourse = course => {
-    if (!!course && isString(course.courseid) && isString(course._id)) {
-      localStorage.setItem('lastCourse', course);
+    if (course && isString(course.courseid) && isString(course._id)) {
+      localStorage.setItem("lastCourse", course);
       this.setState({ course });
     } else {
-      localStorage.removeItem('lastCourse');
+      localStorage.removeItem("lastCourse");
       this.setState({ course: null });
     }
   };
@@ -35,17 +35,20 @@ class App extends React.Component {
   popCourse = () => {
     const { course } = this.state;
     if (!!course && isString(course.courseid) && isString(course._id)) {
-      localStorage.setItem('lastCourse', course);
+      localStorage.setItem("lastCourse", course);
     }
-    this.setState({course: null});
+    this.setState({ course: null });
   };
 
   logout = () => {
-    this.state.client &&
-      this.state.client.logout().then(() => {
-        // TODO: probably handle global user state a better way
+    const { client } = this.state;
+    client
+      .logout()
+      .then(() => {
+        // TODO: this will do for now but should eventually handle global user state a better way
         window.location.reload();
-      });
+      })
+      .catch(err => console.error);
   };
 
   constructor(props) {
@@ -85,7 +88,6 @@ class App extends React.Component {
         // TODO: phase out this garbage global call
         client.emit("authWithUser", user);
         const course = localStorage.getItem("lastCourse");
-        console.log("login, course", course);
         course && this.setCourse(course);
         this.setState({ user, authenticated: true });
       })
@@ -263,7 +265,7 @@ class Nav extends React.Component {
             <ul className="nav navbar-nav navbar-right">
               {user && (
                 <li>
-                  <a href="#" onClick={this.logout}>
+                  <a href="#" onClick={this.props.logout}>
                     Logout
                   </a>
                 </li>

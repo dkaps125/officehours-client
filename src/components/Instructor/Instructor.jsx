@@ -59,7 +59,7 @@ class Instructor extends React.Component {
         {this.props.authenticated === false && <Redirect to="/login" />}
         <div className="col-md-3">
           <h3>{course.courseid && course.courseid.toUpperCase()} Dashboard</h3>
-          <AvailableTas client={client} hideCount />
+          <AvailableTas {...this.props} hideCount />
         </div>
         <div className="col-md-9">
           <h3>Live student queue</h3>

@@ -3,6 +3,9 @@ import AvailableTas from "../AvailableTas";
 import QueuedStudentsTable from "../QueuedStudentsTable";
 import Comments from "./Comments.jsx";
 import toastr from "toastr";
+import { roleForUser } from "../../Utils";
+
+const isOnDuty = (user, course) => user.onDuty && user.onDutyCourse === course._id;
 
 class Ta extends React.Component {
   constructor(props) {
@@ -12,32 +15,23 @@ class Ta extends React.Component {
       numTas: 0,
       studentsInQueue: 0,
       studentQueue: [],
-      currentTicket: null
+      currentTicket: null,
+      onDutyCourse: null
     };
   }
 
   componentDidMount() {
-    const client = this.props.client;
+    const { client, user, course } = this.props;
     const socket = client.get("socket");
-    const user = client.get("user");
-    this.setState({ numTas: 1 });
 
-    // if loaded early
-    socket.on("authWithUser", user => {
-      this.setState({ onDuty: user.onDuty });
-      // this would be better if we used flux or redux
-    });
+    // TODO: if on duty for another course, have msg to change status to this course
+    this.setState({ numTas: 1, onDuty: isOnDuty(user, course) });
+    this.getCurrentStudent();
+    this.updateQueueCount();
 
     // Don't toast because QueuedStudentsTable toasts for us
     socket.on("tokens created", this.updateQueueCount);
     socket.on("tokens patched", this.updateQueueCount);
-
-    if (!!user) {
-      this.setState({ onDuty: user.onDuty });
-      this.setPasscode();
-      this.getCurrentStudent();
-    }
-    this.updateQueueCount();
   }
 
   componentWillUnmount() {
@@ -56,21 +50,16 @@ class Ta extends React.Component {
     }
   }
 
-  toastAndUpdate = (msg, cb) => {
-    toastr.success(msg);
-    cb();
-  };
-
   updateQueueCount = () => {
-    const client = this.props.client;
+    const { client, course } = this.props;
     client
       .service("/tokens")
       .find({
         query: {
           $limit: 0,
-          fulfilled: false
-        },
-        course: "cmsc123"
+          fulfilled: false,
+          course: course._id
+        }
       })
       .then(tickets => {
         console.log({ studentsInQueue: tickets.total });
@@ -79,28 +68,29 @@ class Ta extends React.Component {
       .catch(console.error);
   };
 
+  // TODO: make this work
   cancelAllTix = () => {
     console.log("end oh");
   };
 
   toggleOH = () => {
-    const client = this.props.client;
+    const { client, course, user } = this.props;
     const onDuty = !this.state.onDuty;
     client
       .service("/users")
-      .patch(client.get("user")._id, { onDuty, query: { course: "cmsc123" } })
+      .patch(user._id, { onDuty, onDutyCourse: course._id })
       .then(newMe => {
-        onDuty ? toastr.success("You are now in office hours") : toastr.success("You have left office hours");
-
+        onDuty ? toastr.success("You have joined office hours") : toastr.success("You have left office hours");
         this.setState({ onDuty });
       })
       .catch(err => {
         toastr.error("Cannot change on duty status");
+        console.log("Toggle OH error", err);
       });
   };
 
   getCurrentStudent = () => {
-    const client = this.props.client;
+    const { client, course, user } = this.props;
     client
       .service("/tokens")
       .find({
@@ -108,29 +98,29 @@ class Ta extends React.Component {
           $limit: 1,
           fulfilled: true,
           isBeingHelped: true,
-          fulfilledBy: client.get("user")._id,
+          fulfilledBy: user._id,
           $sort: {
             createdAt: 1
           },
-          cancelledByStudent: false
+          cancelledByStudent: false,
+          course: course._id
         }
       })
       .then(tickets => {
         // Have a current student
-        var currentTicket = null;
+        let currentTicket;
         if (tickets.total > 0) {
           currentTicket = tickets.data[0];
         }
-
         this.setState({ currentTicket });
       });
   };
 
   dequeueStudent = () => {
-    const client = this.props.client;
+    const { client, course } = this.props;
     client
       .service("/dequeue-student")
-      .create({})
+      .create({course: course._id})
       .then(result => {
         this.getCurrentStudent();
       })
@@ -140,11 +130,11 @@ class Ta extends React.Component {
   };
 
   setPasscode = () => {
-    const client = this.props.client;
+    const { client, course } = this.props;
 
     client
       .service("/passcode")
-      .get({})
+      .get(course._id)
       .then(res => {
         this.setState({ passcode: res.passcode });
       });
@@ -174,8 +164,9 @@ class Ta extends React.Component {
   };
 
   closeTicket = comment => {
-    const client = this.props.client;
+    const { client, course, user } = this.props;
     if (!!this.state.currentTicket && window.confirm("Are you sure you want to permanently close this ticket?")) {
+      console.log('closing ticket');
       client
         .service("comment")
         .create(comment)
@@ -183,18 +174,19 @@ class Ta extends React.Component {
           //TODO put this in hook asap
           client
             .service("/users")
-            .get(client.get("user")._id)
+            .get(user._id)
             .then(res => {
-              var t = 1;
-
-              if (res.totalTickets !== undefined) {
-                t = res.totalTickets + 1;
-              }
-
+              var role = roleForUser(res, course);
+              // total tix for course
+              const tixForCourse = role.totalTickets ? role.totalTickets + 1 : 1;
+              // total tix for user
+              const totalTickets = res.totalTickets ? role.totalTickets + 1 : 1;
+              role.totalTickets = tixForCourse;
+              // TODO: patch role properly
               client
                 .service("/users")
-                .patch(client.get("user")._id, {
-                  totalTickets: t
+                .patch(user._id, {
+                  totalTickets
                 })
                 .then(updatedStudent => {
                   console.log(updatedStudent);
@@ -221,13 +213,14 @@ class Ta extends React.Component {
   };
 
   render() {
-    if (!this.props.client) {
+    const { client } = this.props;
+    if (!client) {
       return <div>Loading...</div>;
     }
     return (
       <div className="row" style={{ paddingTop: "15px" }}>
         <div className="col-md-3">
-          <AvailableTas client={this.props.client} />
+          <AvailableTas {...this.props} />
           <hr />
           {this.state.onDuty ? (
             <div className="panel panel-default">
@@ -270,28 +263,28 @@ class Ta extends React.Component {
         </div>
         <div className="col-md-9">
           <p className="lead">
-            Students in queue:
+            Students in queue:&nbsp;
             <strong id="students-in-queue">{this.state.studentsInQueue}</strong>
           </p>
           <hr />
           {this.state.onDuty ? (
             <div>
-              <Comments
-                client={this.props.client}
-                ticket={this.state.currentTicket}
-                closeTicket={this.closeTicket}
-                markNoshow={this.markNoshow}
-              />
+              {this.state.currentTicket && (
+                <Comments
+                  ticket={this.state.currentTicket}
+                  closeTicket={this.closeTicket}
+                  markNoshow={this.markNoshow}
+                  {...this.props}
+                />
+              )}
 
               <div id="student-queue-area" className="panel panel-default">
                 <div className="panel-heading">Student queue</div>
                 <div className="panel-body">
-                  {this.state.studentsInQueue > 0 ? (
+                  {this.state.studentsInQueue > 0 && (
                     <button onClick={this.dequeueStudent} className="btn btn-success" style={{ marginBottom: "15px" }}>
                       Dequeue Student
                     </button>
-                  ) : (
-                    <div />
                   )}
                   <QueuedStudentsTable {...this.props} />
                 </div>

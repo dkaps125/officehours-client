@@ -1,6 +1,6 @@
 import React from "react";
-import toastr from "toastr";
 import { Link } from "react-router-dom";
+import { getCourse } from "../../Utils";
 
 class ListCourses extends React.Component {
   state = {};
@@ -24,7 +24,6 @@ class ListCourses extends React.Component {
       .find()
       .then(courses => {
         this.setState({ courses: courses.data });
-        console.log(courses.data);
       })
       .catch(console.error);
   };
@@ -68,15 +67,38 @@ class ListCourses extends React.Component {
     );
   };
 
+  // This may belong somewhere else, but with the current course routing logic it works ¯\_(ツ)_/¯
+  tryRedirectToCourseFromRoute = courses => {
+    // only slightly dirty
+    const course = getCourse(this.props);
+    if (!course) {
+      return;
+    }
+
+    courses.map(curCourse => {
+      // theoretically a match
+      if (curCourse.courseid.toLowerCase() === course.toLowerCase()) {
+        this.props.setCourse(curCourse);
+        this.props.history.push(this.props.location.pathname);
+        return;
+      }
+    });
+  };
+
   render() {
-    const user = this.props.client.get("user");
+    const { user } = this.props;
+    const { courses } = this.state;
+    if (courses) {
+      this.tryRedirectToCourseFromRoute(courses);
+    }
+
     return (
       <div className="row" style={{ paddingTop: "15px" }}>
         <div className="col-md-9">
           <h2>Select a course</h2>
           <br />
-          {this.state.courses && this.state.courses.length > 0 ? (
-            <ul>{this.state.courses.map(course => this.courseListing(course))}</ul>
+          {courses && courses.length > 0 ? (
+            <ul>{courses.map(course => this.courseListing(course))}</ul>
           ) : (
             <h4>
               <br /> No courses added yet
