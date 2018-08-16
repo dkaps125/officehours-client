@@ -6,6 +6,8 @@ const defaultContext = {
   authenticated: false,
   course: null,
   client: null,
+  recentCourses: [],
+  allCourses: [],
   setCourse: () => {
     /*noop*/
   },

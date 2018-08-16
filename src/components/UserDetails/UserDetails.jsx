@@ -99,7 +99,7 @@ class UserDetails extends React.Component {
           <div id="STUDENT OR TA STATS"> </div>
           {
             user.role === "Student" ?
-            <TicketHistory client={this.props.client} user={user} searchBar={false} />
+            <TicketHistory client={this.props.client} student={user} searchBar={false} />
             : <TicketHistory client={this.props.client} fulfilledBy={user} searchBar={false} />
           }
         </div>

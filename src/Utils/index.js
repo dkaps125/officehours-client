@@ -108,11 +108,22 @@ export function getCourse(props) {
 }
 
 export function getCourseId() {
-  return localStorage.get("courseId");
+  return localStorage.getItem('courseId');
 }
 
 export function isString(maybeStr) {
   return (typeof maybeStr === 'string' || maybeStr instanceof String);
+}
+
+function removeFromArray(arr) {
+    var what, a = arguments, L = a.length, ax;
+    while (L > 1 && arr.length) {
+        what = a[--L];
+        while ((ax= arr.indexOf(what)) !== -1) {
+            arr.splice(ax, 1);
+        }
+    }
+    return arr;
 }
 
 export function roleForUser(user, course) {
@@ -126,4 +137,21 @@ export function roleForUser(user, course) {
 export function privForUser(user, courseDbId) {
   const role = roleForUser(user, courseDbId)
   return role && role.privilege;
+}
+
+// course is string course._id
+export function storeRecentCourse(course) {
+  let recentCourses = getRecentCourses();
+  removeFromArray(recentCourses, course);
+  recentCourses.push(course)
+  localStorage.setItem('recentCourses', JSON.stringify(recentCourses));
+  return recentCourses;
+}
+
+export function getRecentCourses() {
+  let recentCourses = localStorage.getItem('recentCourses');
+  if (!(isString(recentCourses))) {
+    return [];
+  }
+  return JSON.parse(recentCourses) || [];
 }

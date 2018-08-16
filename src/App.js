@@ -1,32 +1,38 @@
-import React from "react";
-import { BrowserRouter as Router, Route, Link, Redirect, withRouter } from "react-router-dom";
-import Ta from "./components/Ta";
-import Student from "./components/Student";
-import Login from "./components/Login";
-import Instructor from "./components/Instructor";
-import TicketHistory from "./components/TicketHistory";
-import UserDetails from "./components/UserDetails";
+import React from 'react';
+import { BrowserRouter as Router, Route, Link, Redirect, withRouter } from 'react-router-dom';
+import Ta from './components/Ta';
+import Student from './components/Student';
+import Login from './components/Login';
+import Instructor from './components/Instructor';
+import TicketHistory from './components/TicketHistory';
+import UserDetails from './components/UserDetails';
 //import ManageCourses from './components/ManageCourses';
-import CreateCourseWizard from "./components/CreateCourseWizard";
-import ListCourses from "./components/ListCourses";
-import { getCourse, isString } from "./Utils";
+import CreateCourseWizard from './components/CreateCourseWizard';
+import ListCourses from './components/ListCourses';
+import { getCourse, isString, getRecentCourses, storeRecentCourse } from './Utils';
 
-import { defaultContext, UserContext, withUser, withUserRequireCourse } from "./api/UserStore";
+import { defaultContext, UserContext, withUser, withUserRequireCourse } from './api/UserStore';
 
-const io = require("socket.io-client");
-const feathers = require("@feathersjs/feathers");
-const socketio = require("@feathersjs/socketio-client");
-const auth = require("@feathersjs/authentication-client");
+const io = require('socket.io-client');
+const feathers = require('@feathersjs/feathers');
+const socketio = require('@feathersjs/socketio-client');
+const auth = require('@feathersjs/authentication-client');
 
 const ConnectedLogin = withUser(Login);
 
 class App extends React.Component {
   setCourse = course => {
     if (course && isString(course.courseid) && isString(course._id)) {
-      localStorage.setItem("lastCourse", course);
-      this.setState({ course });
+      localStorage.setItem('lastCourse', course);
+      if (this.state.allCourses) {
+        const recentCourseIds = storeRecentCourse(course._id);
+        const recentCourses = this.state.allCourses.filter(course => recentCourseIds.includes(course._id));
+        this.setState({ course, recentCourses });
+      } else {
+        this.setState({ course });
+      }
     } else {
-      localStorage.removeItem("lastCourse");
+      localStorage.removeItem('lastCourse');
       this.setState({ course: null });
     }
   };
@@ -34,8 +40,8 @@ class App extends React.Component {
   // TODO: call when exiting to a container without course required
   popCourse = () => {
     const { course } = this.state;
-    if (!!course && isString(course.courseid) && isString(course._id)) {
-      localStorage.setItem("lastCourse", course);
+    if (course && isString(course.courseid) && isString(course._id)) {
+      localStorage.setItem('lastCourse', course);
     }
     this.setState({ course: null });
   };
@@ -54,53 +60,64 @@ class App extends React.Component {
   constructor(props) {
     super(props);
 
-    const socket = io("http://localhost:3030", {
+    const socket = io('http://localhost:3030', {
       secure: true,
-      transports: ["websocket"],
+      transports: ['websocket'],
       forceNew: true
     });
     const client = feathers()
       .configure(socketio(socket))
       .configure(
         auth({
-          cookie: "feathers-jwt"
+          cookie: 'feathers-jwt'
         })
       );
-    client.set("socket", socket);
+    client.set('socket', socket);
 
     this.state = Object.assign(defaultContext, { client, setCourse: this.setCourse, logout: this.logout });
 
-    const users = client.service("/users");
+    const users = client.service('/users');
+    const courses = client.service('/courses');
+    let queriedUser;
     // Try to authenticate with the JWT stored in localStorage
     client
       .authenticate()
       .then(response => {
-        console.info("authenticated successfully");
-        client.set("jwt", response.accessToken);
+        console.info('authenticated successfully');
+        client.set('jwt', response.accessToken);
         return client.passport.verifyJWT(response.accessToken);
       })
       .then(payload => {
-        console.info("verified JWT");
+        console.info('verified JWT');
         return users.get(payload.userId);
       })
       .then(user => {
-        client.set("user", user);
+        client.set('user', user);
         // TODO: phase out this garbage global call
-        client.emit("authWithUser", user);
-        const course = localStorage.getItem("lastCourse");
-        course && this.setCourse(course);
-        this.setState({ user, authenticated: true });
+        client.emit('authWithUser', user);
+        const course = localStorage.getItem('lastCourse');
+        if (course) {
+          this.setCourse(course);
+        }
+        queriedUser = user;
+        return courses.find();
+        //this.setState({ user, recentCourses, authenticated: true });
+      })
+      .then(courses => {
+        const recentCourseIds = getRecentCourses();
+        const recentCourses = courses.data.filter(course => recentCourseIds.includes(course._id));
+        this.setState({ user: queriedUser, recentCourses, allCourses: courses.data, authenticated: true });
       })
       .catch(err => {
-        if (err.name === "NotAuthenticated") {
+        if (err.name === 'NotAuthenticated') {
           this.setState({ user: null, authenticated: false });
         } else {
-          console.error("Error on feathers auth:", err);
+          console.error('Error on feathers auth:', err);
         }
       });
 
-    client.on("reauthentication-error", err => {
-      console.error("Reauth error", err);
+    client.on('reauthentication-error', err => {
+      console.error('Reauth error', err);
       this.setState({ user: null, authenticated: false });
     });
   }
@@ -116,22 +133,22 @@ class App extends React.Component {
               {this.state.authenticated === true ? (
                 <React.Fragment>
                   <ConnectedRoute exact path="/" component={Login} />
-                  <ConnectedRoute exact path="/courses" forRoles={["Instructor"]} component={ListCourses} />
-                  <ConnectedRoute path="/create_course" forRoles={["Instructor"]} component={CreateCourseWizard} />
+                  <ConnectedRoute exact path="/courses" forRoles={['Instructor']} component={ListCourses} />
+                  <ConnectedRoute path="/create_course" forRoles={['Instructor']} component={CreateCourseWizard} />
                   <ConnectedRoute path="/login" component={Login} />
                   <ConnectedRouteRequireCourse
                     path="/:course/instructor/"
-                    forRoles={["Instructor"]}
+                    forRoles={['Instructor']}
                     component={Instructor}
                   />
-                  <ConnectedRouteRequireCourse path="/:course/ta" forRoles={["Instructor", "TA"]} component={Ta} />
-                  <ConnectedRouteRequireCourse path="/:course/student" forRoles={["Student"]} component={Student} />
+                  <ConnectedRouteRequireCourse path="/:course/ta" forRoles={['Instructor', 'TA']} component={Ta} />
+                  <ConnectedRouteRequireCourse path="/:course/student" forRoles={['Student']} component={Student} />
                   <ConnectedRouteRequireCourse
                     path="/:course/tickets"
-                    forRoles={["Instructor", "TA"]}
+                    forRoles={['Instructor', 'TA']}
                     component={TicketHistory}
                   />
-                  <ConnectedRoute path="/user" forRoles={["Instructor", "TA"]} component={UserDetails} />
+                  <ConnectedRoute path="/user" forRoles={['Instructor', 'TA']} component={UserDetails} />
                 </React.Fragment>
               ) : (
                 <ConnectedLogin />
@@ -167,19 +184,6 @@ const ConnectedRouteRequireCourse = ({ component: Component, ...rest }) => (
 );
 
 class Nav extends React.Component {
-  constructor(props) {
-    super(props);
-    const { user } = this.props;
-    this.state = {
-      user,
-      roles: []
-    };
-
-    if (!!user) {
-      this.state.roles = [user.role];
-    }
-  }
-
   genLink = (path, name) => {
     const { course } = this.props;
 
@@ -196,7 +200,7 @@ class Nav extends React.Component {
   // TODO: <li className="active"> <span className="sr-only">(current)</span>
   render() {
     const course = this.props.course && this.props.course.courseid;
-    const { user } = this.props;
+    const { user, recentCourses } = this.props;
     const roles = user && [user.role];
 
     return (
@@ -216,26 +220,35 @@ class Nav extends React.Component {
               <span className="icon-bar" />
             </button>
             <a className="navbar-brand dropdown-toggle" data-toggle="dropdown" href="#">
-              {((course && course.toUpperCase()) || "") + " Office Hours"}
+              {((course && course.toUpperCase()) || '') + ' Office Hours'}
               <span className="caret" />
             </a>
-            <ul className="dropdown-menu" style={{ marginLeft: "25px" }}>
-              <li>
-                <a>Recent courses:</a>
-              </li>
-              <li role="separator" className="divider" />
-              <li>
-                <a href="#">CMSC330</a>
-              </li>
-              <li>
-                <a href="#">CMSC131</a>
-              </li>
-              <li role="separator" className="divider" />
+            <ul className="dropdown-menu" style={{ marginLeft: '25px' }}>
+              {recentCourses && (
+                <React.Fragment>
+                  <li>
+                    <a>Recent courses:</a>
+                  </li>
+                  {recentCourses.map(
+                    course =>
+                      course && (
+                        <li key={course._id + '_list'}>
+                          {/* TODO set function on select*/}
+                          <a key={course._id} href="#">
+                            {course.courseid}
+                          </a>
+                        </li>
+                      )
+                  )}
+                  <li role="separator" className="divider" />
+                </React.Fragment>
+              )}
               <li>
                 <Link to="/courses">All courses</Link>
               </li>
+              {/*should we put a "manage course" dupe link to instr dashboard?*/}
               <li>
-                <Link to="/create_course">Manage CMSC131</Link>
+                <Link to="/admin">Manage courses</Link>
               </li>
               <li role="separator" className="divider" />
               <li>
@@ -245,12 +258,12 @@ class Nav extends React.Component {
           </div>
           <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul className="nav navbar-nav">
-              {course && roles.includes("Instructor") && this.genLink("instructor", "Instructor Home")}
-              {course && (roles.includes("Instructor") || roles.includes("TA")) && this.genLink("ta", "TA Home")}
+              {course && roles.includes('Instructor') && this.genLink('instructor', 'Instructor Home')}
+              {course && (roles.includes('Instructor') || roles.includes('TA')) && this.genLink('ta', 'TA Home')}
               {course &&
-                (roles.includes("Instructor") || roles.includes("TA")) &&
-                this.genLink("tickets", "Ticket History")}
-              {course && roles.includes("Student") && this.genLink("students", "Home")}
+                (roles.includes('Instructor') || roles.includes('TA')) &&
+                this.genLink('tickets', 'Ticket History')}
+              {course && roles.includes('Student') && this.genLink('students', 'Home')}
               {!course && (
                 <li>
                   <Link to="/courses">Select a course</Link>

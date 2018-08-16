@@ -3,12 +3,15 @@ import { Link } from "react-router-dom";
 import { getCourse } from "../../Utils";
 
 class ListCourses extends React.Component {
+  /*
   state = {};
 
   componentDidMount() {
     this.getCourses();
   }
+  */
 
+  // TODO: this should be taken care of by the back end
   getMyCourses = () => {
     const client = this.props.client;
     const user = client.get("user");
@@ -17,6 +20,7 @@ class ListCourses extends React.Component {
     });
   };
 
+  /*
   getCourses = () => {
     const client = this.props.client;
     client
@@ -27,6 +31,7 @@ class ListCourses extends React.Component {
       })
       .catch(console.error);
   };
+  */
 
   routeForRole = role => {
     switch (role) {
@@ -45,7 +50,7 @@ class ListCourses extends React.Component {
 
   selectCourse = course => {
     this.props.setCourse(course);
-    this.props.history.push(course.courseid + "/" + this.routeForRole(this.props.client.get("user").role));
+    this.props.history.replace(course.courseid + "/" + this.routeForRole(this.props.client.get("user").role));
   };
 
   courseListing = course => {
@@ -87,7 +92,8 @@ class ListCourses extends React.Component {
 
   render() {
     const { user } = this.props;
-    const { courses } = this.state;
+    const { allCourses: courses } = this.props;
+    // TODO: move to componentDidUpdate since this mutates state
     if (courses) {
       this.tryRedirectToCourseFromRoute(courses);
     }
