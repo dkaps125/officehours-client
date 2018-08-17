@@ -155,3 +155,17 @@ export function getRecentCourses() {
   }
   return JSON.parse(recentCourses) || [];
 }
+
+export function courseForId(allCourses, courseDbId) {
+  for(let i = 0; i < allCourses.length; i++) {
+    const course = allCourses[i];
+    if (course._id === courseDbId) {
+      return course;
+    }
+  }
+  return null;
+}
+
+export function hasAppPermission(user, permission) {
+  return user && user.permissions && user.permissions.includes(permission)
+}

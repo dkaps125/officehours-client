@@ -15,19 +15,23 @@ class TicketHistory extends React.Component {
   }
 
   componentDidMount() {
-    this.updateTicketList(0);
+    this.updateTicketList(this.props, 0);
   }
 
   componentDidUpdate(newProps) {
-    if (!this.props.course || this.props.course._id != newProps.course._id) {
-      this.updateTicketList(0);
+    const {course} = newProps
+    if ((course && !this.props.course) || course._id != this.props.course._id) {
+      this.updateTicketList(newProps, 0);
     }
   }
 
-  updateTicketList = page => {
+  updateTicketList = (props, page) => {
+    if (!props || !props.client) {
+      return;
+    }
     page = !page ? 0 : page;
 
-    const client = this.props.client;
+    const client = props.client;
     var q = {};
 
     /*
@@ -61,15 +65,18 @@ class TicketHistory extends React.Component {
         $sort: {
           createdAt: -1
         },
-        course: this.props.course._id
       }
     };
 
-    if (this.props.student) {
+    if (props.course) {
+      q.query.course = this.props.course._id
+    }
+
+    if (props.student) {
       q.query.user = this.props.user;
     }
 
-    if (this.props.fulfilledBy) {
+    if (props.fulfilledBy) {
       q.query.fulfilledBy = this.props.fulfilledBy;
     }
 

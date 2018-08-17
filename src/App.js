@@ -9,6 +9,7 @@ import UserDetails from './components/UserDetails';
 //import ManageCourses from './components/ManageCourses';
 import CreateCourseWizard from './components/CreateCourseWizard';
 import ListCourses from './components/ListCourses';
+import AdminUsers from './components/AdminUsers';
 import { getCourse, isString, getRecentCourses, storeRecentCourse } from './Utils';
 
 import { defaultContext, UserContext, withUser, withUserRequireCourse } from './api/UserStore';
@@ -135,6 +136,7 @@ class App extends React.Component {
                   <ConnectedRoute exact path="/" component={Login} />
                   <ConnectedRoute exact path="/courses" forRoles={['Instructor']} component={ListCourses} />
                   <ConnectedRoute path="/create_course" forRoles={['Instructor']} component={CreateCourseWizard} />
+                  <ConnectedRoute path="/admin_users" forRoles={['Instructor']} component={AdminUsers} />
                   <ConnectedRoute path="/login" component={Login} />
                   <ConnectedRouteRequireCourse
                     path="/:course/instructor/"
@@ -248,7 +250,7 @@ class Nav extends React.Component {
               </li>
               {/*should we put a "manage course" dupe link to instr dashboard?*/}
               <li>
-                <Link to="/admin">Manage courses</Link>
+                <Link to="/admin_users">Manage users</Link>
               </li>
               <li role="separator" className="divider" />
               <li>

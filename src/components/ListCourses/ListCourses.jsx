@@ -1,6 +1,6 @@
-import React from "react";
-import { Link } from "react-router-dom";
-import { getCourse } from "../../Utils";
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { getCourse } from '../../Utils';
 
 class ListCourses extends React.Component {
   /*
@@ -14,7 +14,7 @@ class ListCourses extends React.Component {
   // TODO: this should be taken care of by the back end
   getMyCourses = () => {
     const client = this.props.client;
-    const user = client.get("user");
+    const user = client.get('user');
     return user.roles.map(role => {
       return role.course;
     });
@@ -35,42 +35,37 @@ class ListCourses extends React.Component {
 
   routeForRole = role => {
     switch (role) {
-      case "Admin":
-      case "Instructor":
-        return "instructor";
+      case 'Admin':
+      case 'Instructor':
+        return 'instructor';
         break;
-      case "TA":
-        return "ta";
+      case 'TA':
+        return 'ta';
         break;
-      case "Student":
+      case 'Student':
       default:
-        return "student";
+        return 'student';
     }
   };
 
-  selectCourse = course => {
-    this.props.setCourse(course);
-    this.props.history.replace(course.courseid + "/" + this.routeForRole(this.props.client.get("user").role));
-  };
-
-  courseListing = course => {
-    return (
-      <div className="panel panel-danger" key={course.courseid || course.toString()}>
-        <div className="panel-heading">
-          <h3 className="panel-title">{course.courseid}</h3>
-        </div>
-        <div
-          onClick={() => {
-            this.selectCourse(course);
-          }}
-          style={{ cursor: "pointer" }}
-          className="panel-body"
-        >
-          {course.semester.term + " " + course.semester.year}
-        </div>
+// TODO: pull out routeForRole into utils, make it dependent on course,
+  courseListing = course => (
+    <div className="panel panel-danger" key={course.courseid || course.toString()}>
+      <div className="panel-heading">
+        <h3 className="panel-title">{course.courseid}</h3>
       </div>
-    );
-  };
+      <div
+        onClick={() => {
+          this.props.history.replace(course.courseid + "/" + this.routeForRole(this.props.user.role));
+          this.props.setCourse(course);
+        }}
+        style={{ cursor: 'pointer' }}
+        className="panel-body"
+      >
+        {course.semester.term + ' ' + course.semester.year}
+      </div>
+    </div>
+  );
 
   // This may belong somewhere else, but with the current course routing logic it works ¯\_(ツ)_/¯
   tryRedirectToCourseFromRoute = courses => {
@@ -84,7 +79,6 @@ class ListCourses extends React.Component {
       // theoretically a match
       if (curCourse.courseid.toLowerCase() === course.toLowerCase()) {
         this.props.setCourse(curCourse);
-        this.props.history.push(this.props.location.pathname);
         return;
       }
     });
@@ -99,7 +93,7 @@ class ListCourses extends React.Component {
     }
 
     return (
-      <div className="row" style={{ paddingTop: "15px" }}>
+      <div className="row" style={{ paddingTop: '15px' }}>
         <div className="col-md-9">
           <h2>Select a course</h2>
           <br />
@@ -111,7 +105,7 @@ class ListCourses extends React.Component {
             </h4>
           )}
           {// instructor legacy, TODO remove
-          (user.role === "Instructor" || user.role === "Admin") && (
+          (user.role === 'Instructor' || user.role === 'Admin') && (
             <Link className="btn btn-info btn-lg fixedButton" to="/create_course">
               <strong>+</strong> Course
             </Link>
