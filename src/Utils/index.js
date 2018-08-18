@@ -169,3 +169,22 @@ export function courseForId(allCourses, courseDbId) {
 export function hasAppPermission(user, permission) {
   return user && user.permissions && user.permissions.includes(permission)
 }
+
+export function routeForUser(user, course) {
+  const priv = privForUser(user, course);
+  let roleUrl;
+  // TODO: error case?
+  switch (priv) {
+    case 'Admin':
+    case 'Instructor':
+      roleUrl = 'instructor';
+      break;
+    case 'TA':
+      roleUrl = 'ta';
+      break;
+    case 'Student':
+    default:
+      roleUrl = 'student';
+  }
+  return `/${course.courseid}/${roleUrl}`;
+};
