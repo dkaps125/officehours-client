@@ -10,7 +10,7 @@ import UserDetails from './components/UserDetails';
 import CreateCourseWizard from './components/CreateCourseWizard';
 import ListCourses from './components/ListCourses';
 import AdminUsers from './components/AdminUsers';
-import { getCourse, isString, getRecentCourses, storeRecentCourse } from './Utils';
+import { getCourse, isString, getRecentCourses, storeRecentCourse, routeForUser } from './Utils';
 
 import { defaultContext, UserContext, withUser, withUserRequireCourse } from './api/UserStore';
 
@@ -235,10 +235,9 @@ class Nav extends React.Component {
                     course =>
                       course && (
                         <li key={course._id + '_list'}>
-                          {/* TODO set function on select*/}
-                          <a key={course._id} href="#">
+                          <Link key={'nav_'+course._id} to={routeForUser(user, course)} onClick={() => {this.props.setCourse(course)}}>
                             {course.courseid}
-                          </a>
+                          </Link>
                         </li>
                       )
                   )}

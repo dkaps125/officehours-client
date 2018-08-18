@@ -52,7 +52,7 @@ class AdminUsers extends React.Component {
             {...this.props}
             userRoster={this.state.userRoster}
             loadUserRoster={this.loadUserRoster}
-            heading="Manage all users"
+            heading="Global user roster"
             noCourse
           />
           {/* Have easy +course button */}
