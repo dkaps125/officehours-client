@@ -1,8 +1,10 @@
 import React from 'react';
+import toastr from 'toastr';
 import { getUrlParameter, hasAppPermission } from '../../Utils';
 import TicketHistory from '../TicketHistory';
+import CoursesForUser from './CoursesForUser.jsx';
 import UserEdit from './UserEdit.jsx';
-import toastr from 'toastr';
+import AddToCourse from './AddToCourse.jsx';
 
 class UserDetails extends React.Component {
   state = { user: null };
@@ -42,7 +44,8 @@ class UserDetails extends React.Component {
       .service('/users')
       .patch(oldUser._id, newUser)
       .then(() => {
-        this.toastAndUpdate('User successfully updated', this.loadUser);
+        toastr.success('User successfully updated');
+        this.loadUser();
       })
       .catch(() => {
         toastr.error('Could not update user');
@@ -51,13 +54,9 @@ class UserDetails extends React.Component {
 
   deleteUser = () => {
     const { user } = this.state;
+    const deletionMessage = `Are you sure you want to permanently delete ${user.name || user.directoryID}`;
 
-    if (
-      user &&
-      window.confirm(
-        'Are you sure you want to permanently delete ' + (this.state.user.name || this.state.user.directoryID)
-      )
-    ) {
+    if (user && window.confirm(deletionMessage)) {
       this.props.client
         .service('/users')
         .remove(user._id)
@@ -95,10 +94,10 @@ class UserDetails extends React.Component {
               <strong>Directory ID:</strong> <span>{user.directoryID}</span>
             </p>
             <p>
-              <strong>Role:</strong> <span>{user.role}</span>
+              <strong>Privileges:</strong> <span>{user.role}</span>
             </p>
             <br />
-            {!isThisMe && (
+            {!isThisMe && hasAppPermission(this.props.user, 'user_del') && (
               <button onClick={this.deleteUser} className="instr-only btn btn-warning">
                 Delete user
               </button>
@@ -128,12 +127,13 @@ class UserDetails extends React.Component {
         <div className="col-xl-9 col-lg-9 col-md-9">
           {hasAppPermission(this.props.user, 'user_mod') && <UserEdit user={user} handleSubmit={this.handleSubmit} />}
           <hr />
-          <div>TODO: put stats in & fix the below search func</div>
-          {user.role === 'Student' ? (
-            <TicketHistory client={this.props.client} student={user} searchBar={false} />
-          ) : (
-            <TicketHistory client={this.props.client} fulfilledBy={user} searchBar={false} />
-          )}
+          <h3>Course Enrollment</h3>
+          <CoursesForUser queriedUser={user} allCourses={this.props.allCourses} />
+          <AddToCourse {...this.props} queriedUser={user} />
+          <h3>Stats</h3>
+          {/*TODO: do this after August 2018 rollout */}
+          <div className="well">Coming soon</div>
+          <TicketHistory {...this.props} queriedUser={user} searchBar={false} />
         </div>
       </div>
     );
