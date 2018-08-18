@@ -1,6 +1,6 @@
 import React from 'react';
-import { genUserElt, privForUser, courseForId } from '../../Utils';
 import toastr from 'toastr';
+import { genUserElt, privForUser, courseForId } from '../../Utils';
 
 class UserRoster extends React.Component {
   static defaultProps = {
