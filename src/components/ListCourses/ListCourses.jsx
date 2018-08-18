@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { getCourse } from '../../Utils';
+import { getCourse, routeForUser } from '../../Utils';
 
 class ListCourses extends React.Component {
   /*
@@ -33,22 +33,6 @@ class ListCourses extends React.Component {
   };
   */
 
-  routeForRole = role => {
-    switch (role) {
-      case 'Admin':
-      case 'Instructor':
-        return 'instructor';
-        break;
-      case 'TA':
-        return 'ta';
-        break;
-      case 'Student':
-      default:
-        return 'student';
-    }
-  };
-
-// TODO: pull out routeForRole into utils, make it dependent on course,
   courseListing = course => (
     <div className="panel panel-danger" key={course.courseid || course.toString()}>
       <div className="panel-heading">
@@ -56,8 +40,8 @@ class ListCourses extends React.Component {
       </div>
       <div
         onClick={() => {
-          this.props.history.replace(course.courseid + "/" + this.routeForRole(this.props.user.role));
           this.props.setCourse(course);
+          this.props.history.replace(routeForUser(this.props.user, course));
         }}
         style={{ cursor: 'pointer' }}
         className="panel-body"

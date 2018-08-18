@@ -18,14 +18,20 @@ class TicketHistory extends React.Component {
     this.updateTicketList(this.props, 0);
   }
 
-  componentDidUpdate(newProps) {
-    const {course} = newProps
-    if ((course && !this.props.course) || course._id != this.props.course._id) {
-      this.updateTicketList(newProps, 0);
+  componentDidUpdate(prevProps) {
+    const {course: newCourse} = this.props;
+    const {course: oldCourse} = this.props;
+
+    if (newCourse && !oldCourse) {
+      this.updateTicketList(0);
+    } else if (newCourse && oldCourse && newCourse._id != oldCourse._id) {
+      this.updateTicketList(0)
     }
   }
 
-  updateTicketList = (props, page) => {
+  updateTicketList = page => {
+    const { props } = this;
+
     if (!props || !props.client) {
       return;
     }
@@ -65,19 +71,15 @@ class TicketHistory extends React.Component {
         $sort: {
           createdAt: -1
         },
+        $or: [
+          {user: this.props.queriedUser},
+          {fulfilledBy: this.props.queriedUser}
+        ]
       }
     };
 
     if (props.course) {
       q.query.course = this.props.course._id
-    }
-
-    if (props.student) {
-      q.query.user = this.props.user;
-    }
-
-    if (props.fulfilledBy) {
-      q.query.fulfilledBy = this.props.fulfilledBy;
     }
 
     client
@@ -168,7 +170,7 @@ class TicketHistory extends React.Component {
                       <td>{ticket.curStatus}</td>
                       <td>{ticket.user.name || ticket.user.directoryID}</td>
                       <td>{new Date(ticket.createdAt).toLocaleString()}</td>
-                      <td>{!!ticket.fulfilledByName ? ticket.fulfilledByName : ''}</td>
+                      <td>{ticket.fulfilledByName || ''}</td>
                       <td className="col-xs-4">{ticket.desc || 'No description'}</td>
                     </tr>
                   );
