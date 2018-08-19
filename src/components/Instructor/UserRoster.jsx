@@ -17,9 +17,9 @@ class UserRoster extends React.Component {
 
   componentWillReceiveProps = nextProp => {
     if (nextProp.userRoster != this.props.userRoster) {
-      this.setState({displayedRoster: nextProp.userRoster});
+      this.setState({ displayedRoster: nextProp.userRoster });
     }
-  }
+  };
 
   deleteUser = user => {
     if (window.confirm('Are you sure you want to permanently delete this user?')) {
@@ -43,8 +43,9 @@ class UserRoster extends React.Component {
         const course = courseForId(this.props.allCourses, role.course);
         return (
           course && (
-            <div styles={{'marginBottom': '10px'}} key={role._id}>
-              <strong>{`${course.courseid}: `}</strong>{role.privilege}
+            <div styles={{ marginBottom: '10px' }} key={role._id}>
+              <strong>{`${course.courseid}: `}</strong>
+              {role.privilege}
             </div>
           )
         );
@@ -56,11 +57,11 @@ class UserRoster extends React.Component {
     var sortColumn;
 
     if (byColumn === 0) {
-      sortColumn = "_id";
+      sortColumn = '_id';
     } else if (byColumn === 1) {
-      sortColumn = "directoryID";
+      sortColumn = 'directoryID';
     } else if (byColumn === 2) {
-      sortColumn = "name";
+      sortColumn = 'name';
     }
 
     const compare = (a, b) => {
@@ -73,17 +74,16 @@ class UserRoster extends React.Component {
       }
     };
 
-    this.setState( {
+    this.setState({
       displayedRoster: this.state.displayedRoster.sort(compare),
       sortOrder: -this.state.sortOrder
     });
   };
 
   searchTable = queryEvent => {
-    console.log(queryEvent.target.value);
-    const query = queryEvent.target.value;
+    const query = queryEvent.target.value.toLowerCase();
 
-    const searchResults = this.props.userRoster.filter((ele) => {
+    const searchResults = this.props.userRoster.filter(ele => {
       return ele.name.toLowerCase().includes(query) || ele.directoryID.includes(query);
     });
 

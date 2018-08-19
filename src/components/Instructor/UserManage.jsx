@@ -1,20 +1,20 @@
-import React from "react";
-import CSVUpload from "./CSVUpload.jsx";
-import toastr from "toastr";
+import React from 'react';
+import CSVUpload from './CSVUpload.jsx';
+import toastr from 'toastr';
 
 class UserManage extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      role: "Student",
-      name: "",
-      directoryID: ""
+      role: 'Student',
+      name: '',
+      directoryID: ''
     };
   }
 
   handleInputChange = event => {
     const target = event.target;
-    const value = target.type === "checkbox" ? target.checked : target.value;
+    const value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
 
     this.setState({
@@ -24,7 +24,7 @@ class UserManage extends React.Component {
 
   deleteAllWithRole = role => {
     this.props.client
-      .service("/users")
+      .service('/users')
       .remove(null, {
         query: {
           roles: {
@@ -37,7 +37,7 @@ class UserManage extends React.Component {
       })
       .then(res => {
         this.props.loadUserRoster();
-        toastr.success("Successfully deleted users");
+        toastr.success('Successfully deleted users');
       })
       .catch(err => {
         console.err(err);
@@ -45,14 +45,14 @@ class UserManage extends React.Component {
   };
 
   deleteAllStudents = event => {
-    if (window.confirm("Are you sure you want to permanently delete ALL students?")) {
-      this.deleteAllWithRole("Student");
+    if (window.confirm('Are you sure you want to permanently delete ALL students?')) {
+      this.deleteAllWithRole('Student');
     }
   };
 
   deleteAllTAs = event => {
     if (window.confirm("Are you sure you want to permanently delete ALL TA's?")) {
-      this.deleteAllWithRole("TA");
+      this.deleteAllWithRole('TA');
     }
   };
 
@@ -60,7 +60,7 @@ class UserManage extends React.Component {
     event.preventDefault();
 
     if (!this.state.name || !this.state.directoryID || !this.state.role) {
-      toastr.warning("Missing field in user creation form");
+      toastr.warning('Missing field in user creation form');
       return;
     }
     const roles = [
@@ -76,15 +76,15 @@ class UserManage extends React.Component {
     };
 
     this.props.client
-      .service("/users")
+      .service('/users')
       .create(newUser)
       .then(res => {
-        toastr.success("User " + this.state.name + " successfully created");
-        this.setState({ name: "", directoryID: "" });
+        toastr.success('User ' + this.state.name + ' successfully created');
+        this.setState({ name: '', directoryID: '' });
         this.props.loadUserRoster();
       })
       .catch(function(err) {
-        toastr.error("Could not create user with this directory ID and name");
+        toastr.error('Could not create user with this directory ID and name');
         console.error(err);
       });
   };

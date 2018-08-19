@@ -1,12 +1,12 @@
-import React from "react";
-import { Redirect } from "react-router-dom";
-import AvailableTas from "../AvailableTas";
-import QueuedStudentsTable from "../QueuedStudentsTable";
+import React from 'react';
+import { Redirect } from 'react-router-dom';
+import AvailableTas from '../AvailableTas';
+import QueuedStudentsTable from '../QueuedStudentsTable';
 
-import UserManage from "./UserManage.jsx";
-import UserRoster from "./UserRoster.jsx";
-import StudentStats from "./StudentStats.jsx";
-import toastr from "toastr";
+import UserManage from './UserManage.jsx';
+import UserRoster from './UserRoster.jsx';
+import StudentStats from './StudentStats.jsx';
+import toastr from 'toastr';
 
 class Instructor extends React.Component {
   constructor(props) {
@@ -16,18 +16,18 @@ class Instructor extends React.Component {
       userRoster: []
     };
 
-    const socket = props.client.get("socket");
-    socket.on("users created", this.loadUserRoster);
-    socket.on("users patched", this.loadUserRoster);
+    const socket = props.client.get('socket');
+    socket.on('users created', this.loadUserRoster);
+    socket.on('users patched', this.loadUserRoster);
     this.loadUserRoster();
 
     // Don't toast because QueuedStudentsTable toasts for us
   }
 
   componentWillUnmount() {
-    const socket = this.props.client.get("socket");
-    socket.removeListener("users created", this.loadUserRoster);
-    socket.removeListener("users patched", this.loadUserRoster);
+    const socket = this.props.client.get('socket');
+    socket.removeListener('users created', this.loadUserRoster);
+    socket.removeListener('users patched', this.loadUserRoster);
   }
 
   loadUserRoster = () => {
@@ -35,7 +35,7 @@ class Instructor extends React.Component {
     // they can then be shoved into a context and be told to refresh when needed.
     // This is bad design.
     this.props.client
-      .service("/users")
+      .service('/users')
       .find({
         query: {
           roles: {
@@ -55,7 +55,7 @@ class Instructor extends React.Component {
   render() {
     const { client, course } = this.props;
     return (
-      <div className="row" style={{ paddingTop: "15px" }}>
+      <div className="row" style={{ paddingTop: '15px' }}>
         {this.props.authenticated === false && <Redirect to="/login" />}
         <div className="col-md-3">
           <h3>{course.courseid && course.courseid.toUpperCase()} Dashboard</h3>
