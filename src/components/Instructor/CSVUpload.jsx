@@ -13,13 +13,14 @@ class CSVUpload extends React.Component {
     event.preventDefault();
     var form = new FormData();
     form.append('userfile', this.csvFile.files[0]);
-    fetch('/csvUpload', {
+    fetch('http://localhost:3030/csvUpload', {
       method: 'POST',
       body: form,
       headers: {
         "Authorization": this.props.client.get('jwt')
       }
     }).then(res => {
+      console.log(res);
       return res.json();
     }).then(body => {
       console.log(body);
