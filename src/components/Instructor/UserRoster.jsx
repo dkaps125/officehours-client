@@ -89,7 +89,6 @@ class UserRoster extends React.Component {
   render() {
     return (
       <div>
-        <h3>{this.props.heading}</h3>
         <form className="form-inline">
           <input type="text" className="form-control" onKeyUp={this.search} placeholder="Search..." />
         </form>

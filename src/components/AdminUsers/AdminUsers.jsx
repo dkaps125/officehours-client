@@ -1,6 +1,9 @@
 import React from 'react';
 import toastr from 'toastr';
 import UserRoster from '../Instructor/UserRoster';
+import UserAdd from '../Instructor/UserAdd';
+import UserBulkDeletion from '../Instructor/UserBulkDeletion';
+import CSVUpload from '../Instructor/CSVUpload';
 
 class AdminUsers extends React.Component {
   constructor(props) {
@@ -45,8 +48,15 @@ class AdminUsers extends React.Component {
     return (
       <div className="row" style={{ paddingTop: '15px' }}>
         <div className="col-md-9">
-          <h3>User Management</h3>
-          {<h3>CSV Upload</h3>}
+          <h2>Global User Management</h2>
+          <h3>Add user</h3>
+          <UserAdd {...this.props} loadUserRoster={this.loadUserRoster} />
+          <hr />
+          <h3>Bulk user creation</h3>
+          <CSVUpload {...this.props} loadUserRoster={this.loadUserRoster} />
+          <hr />
+          <h3>Bulk user deletion</h3>
+          <UserBulkDeletion {...this.props} loadUserRoster={this.loadUserRoster} />
           {/* Filter by criteria, like name */}
           <UserRoster
             {...this.props}

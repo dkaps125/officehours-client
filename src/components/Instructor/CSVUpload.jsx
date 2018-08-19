@@ -30,6 +30,15 @@ class CSVUpload extends React.Component {
   render() {
       //<form action="" method="post" encType="multipart/form-data" id="js-upload-form" accept=".csv">
     return <div>
+      <a href="example.csv">Download example CSV file</a>
+      <p>
+        Upload a CSV, must be comma separated. Names cannot contain commas.
+        <br />
+        Only include columns:
+        <strong>name,directoryID,role</strong>
+        where role is either "Instructor", "Student", or "TA"
+      </p>
+      <br />
       <form onSubmit={this.handleFileUpload}>
         <div className="form-inline">
           <div className="form-group">
