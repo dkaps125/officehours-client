@@ -9,7 +9,16 @@ class UserRoster extends React.Component {
 
   constructor(props) {
     super(props);
-    this.state = {};
+    this.state = {
+      displayedRoster: props.userRoster,
+      sortOrder: -1
+    };
+  }
+
+  componentWillReceiveProps = nextProp => {
+    if (nextProp.userRoster != this.props.userRoster) {
+      this.setState({displayedRoster: nextProp.userRoster});
+    }
   }
 
   deleteUser = user => {
@@ -44,8 +53,43 @@ class UserRoster extends React.Component {
   );
 
   sortTable = byColumn => {
-    /* TODO @dkaps please, preferably without a backend call
-    (if so we move this upstream and pass thru props) */
+    var sortColumn;
+
+    if (byColumn === 0) {
+      sortColumn = "_id";
+    } else if (byColumn === 1) {
+      sortColumn = "directoryID";
+    } else if (byColumn === 2) {
+      sortColumn = "name";
+    }
+
+    const compare = (a, b) => {
+      if (!!sortColumn) {
+        if (a[sortColumn] < b[sortColumn]) return this.state.sortOrder;
+        else return -this.state.sortOrder;
+      } else {
+        if (privForUser(a, this.props.course) < privForUser(b, this.props.course)) return this.state.sortOrder;
+        else return -this.state.sortOrder;
+      }
+    };
+
+    this.setState( {
+      displayedRoster: this.state.displayedRoster.sort(compare),
+      sortOrder: -this.state.sortOrder
+    });
+  };
+
+  searchTable = queryEvent => {
+    console.log(queryEvent.target.value);
+    const query = queryEvent.target.value;
+
+    const searchResults = this.props.userRoster.filter((ele) => {
+      return ele.name.toLowerCase().includes(query) || ele.directoryID.includes(query);
+    });
+
+    this.setState({
+      displayedRoster: searchResults
+    });
   };
 
   renderUserRow = (user, row) => {
@@ -90,7 +134,7 @@ class UserRoster extends React.Component {
     return (
       <div>
         <form className="form-inline">
-          <input type="text" className="form-control" onKeyUp={this.search} placeholder="Search..." />
+          <input type="text" className="form-control" onKeyUp={this.searchTable} placeholder="Search..." />
         </form>
         <table className="table table-striped" data-sortorder="1">
           <thead>
@@ -126,7 +170,7 @@ class UserRoster extends React.Component {
               <th>Actions</th>
             </tr>
           </thead>
-          <tbody>{this.props.userRoster && this.props.userRoster.map(this.renderUserRow)}</tbody>
+          <tbody>{this.state.displayedRoster && this.state.displayedRoster.map(this.renderUserRow)}</tbody>
         </table>
       </div>
     );
