@@ -10,7 +10,9 @@ class TicketHistory extends React.Component {
       itemsPerPage: 20,
       pagesLoaded: [],
       hasMoreTickets: true,
-      modalVisible: false
+      modalVisible: false,
+      sortOrder: -1,
+      searchQuery: undefined
     };
   }
 
@@ -19,13 +21,13 @@ class TicketHistory extends React.Component {
   }
 
   componentDidUpdate(prevProps) {
-    const {course: newCourse} = this.props;
-    const {course: oldCourse} = this.props;
+    const { course: newCourse } = this.props;
+    const { course: oldCourse } = this.props;
 
     if (newCourse && !oldCourse) {
       this.updateTicketList(0);
     } else if (newCourse && oldCourse && newCourse._id != oldCourse._id) {
-      this.updateTicketList(0)
+      this.updateTicketList(0);
     }
   }
 
@@ -70,16 +72,19 @@ class TicketHistory extends React.Component {
         $skip: page * this.state.itemsPerPage,
         $sort: {
           createdAt: -1
-        },
-        $or: [
-          {user: this.props.queriedUser},
-          {fulfilledBy: this.props.queriedUser}
-        ]
+        }
       }
     };
 
+    if (!!this.state.searchQuery) {
+      q.query.$or = [
+        { fulfilledByName: { $search: this.state.searchQuery } },
+        { desc: { $search: this.state.searchQuery } }
+      ];
+    }
+
     if (props.course) {
-      q.query.course = this.props.course._id
+      q.query.course = this.props.course._id;
     }
 
     client
@@ -107,10 +112,59 @@ class TicketHistory extends React.Component {
     this.setState({ modalVisible: true });
   };
 
+  sortTable = byColumn => {
+    var sortColumn;
+
+    if (byColumn === 0) {
+      sortColumn = 'curStatus';
+    } else if (byColumn === 2) {
+      sortColumn = 'createdAt';
+    } else if (byColumn === 3) {
+      sortColumn = 'fulfilledByName';
+    }
+
+    const compare = (a, b) => {
+      if (!!sortColumn) {
+        if (a[sortColumn] < b[sortColumn]) return this.state.sortOrder;
+        else return -this.state.sortOrder;
+      } else {
+        if (a.user.name < b.user.name) return this.state.sortOrder;
+        else return -this.state.sortOrder;
+      }
+    };
+
+    this.setState({
+      tickets: this.state.tickets.sort(compare),
+      sortOrder: -this.state.sortOrder
+    });
+  };
+
+  searchTable = queryEvent => {
+    const query = queryEvent.target.value.toLowerCase();
+    var searchQuery = undefined;
+
+    if (query !== '') {
+      searchQuery = query;
+    }
+
+    this.setState(
+      {
+        searchQuery: searchQuery,
+        tickets: []
+      },
+      () => {
+        this.updateTicketList(this.props, 0);
+      }
+    );
+  };
+
   render() {
     return (
       <div>
         <h3>Ticket history ({this.state.tickets.length})</h3>
+        <form className="form-inline">
+          <input type="text" className="form-control" onKeyUp={this.searchTable} placeholder="Search..." />
+        </form>
         <InfiniteScroll
           pageStart={0}
           loadMore={this.updateTicketList}
@@ -125,10 +179,34 @@ class TicketHistory extends React.Component {
             <tbody>
               <tr key={0} className="active">
                 <th>#</th>
-                <th>Status</th>
-                <th>Student</th>
-                <th>Date</th>
-                <th>TA</th>
+                <th
+                  onClick={() => {
+                    this.sortTable(0);
+                  }}
+                >
+                  Status
+                </th>
+                <th
+                  onClick={() => {
+                    this.sortTable(1);
+                  }}
+                >
+                  Student
+                </th>
+                <th
+                  onClick={() => {
+                    this.sortTable(2);
+                  }}
+                >
+                  Date
+                </th>
+                <th
+                  onClick={() => {
+                    this.sortTable(3);
+                  }}
+                >
+                  TA
+                </th>
                 <th>Description</th>
               </tr>
               {this.state.studentsInQueue === 0 ? (
