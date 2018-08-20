@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { getCourse, routeForUser } from '../../Utils';
+import { getCourse, courseForId, routeForUser } from '../../Utils';
 
 class ListCourses extends React.Component {
   /*
@@ -12,11 +12,14 @@ class ListCourses extends React.Component {
   */
 
   // TODO: this should be taken care of by the back end
-  getMyCourses = () => {
-    const client = this.props.client;
-    const user = client.get('user');
+  getMyCourses = allCourses => {
+    const { user } = this.props;
+
+    if (!user || !user.roles) {
+      return allCourses
+    }
     return user.roles.map(role => {
-      return role.course;
+      return courseForId(allCourses, role.course);
     });
   };
 
@@ -70,7 +73,9 @@ class ListCourses extends React.Component {
 
   render() {
     const { user } = this.props;
-    const { allCourses: courses } = this.props;
+    const { allCourses } = this.props;
+    // TODO: if not admin:
+    const courses = this.getMyCourses(allCourses);
     // TODO: move to componentDidUpdate since this mutates state
     if (courses) {
       this.tryRedirectToCourseFromRoute(courses);
