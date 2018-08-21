@@ -8,6 +8,7 @@ import UserRoster from './UserRoster.jsx';
 import StudentStats from './StudentStats.jsx';
 import CSVUpload from './CSVUpload.jsx';
 import UserAdd from './UserAdd.jsx';
+import EditCourse from './EditCourse.jsx';
 
 import toastr from 'toastr';
 
@@ -65,6 +66,9 @@ class Instructor extends React.Component {
           <AvailableTas {...this.props} hideCount />
         </div>
         <div className="col-md-9">
+          <h3>Dashboard for {`"${this.props.course.title}"`}</h3>
+          <EditCourse {...this.props} />
+          <hr />
           <h3>Live student queue</h3>
           <QueuedStudentsTable {...this.props} />
           <hr />

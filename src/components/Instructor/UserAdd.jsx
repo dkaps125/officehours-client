@@ -1,5 +1,5 @@
 import React from 'react';
-import toastr from "toastr";
+import toastr from 'toastr';
 
 class UserAdd extends React.Component {
   constructor(props) {
@@ -91,7 +91,7 @@ class UserAdd extends React.Component {
         </div>
         &nbsp;
         <button type="button" className="btn btn-default" onClick={this.userCreate}>
-          Create user
+          {this.props.course ? 'Add user' : 'Create user'}
         </button>
       </form>
     );

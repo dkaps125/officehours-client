@@ -8,8 +8,8 @@ class CreateCourseWizard extends React.Component {
       /*title: '',
       courseid: '',
       //ohURL: '',
-      numTokens: 2,
-      requiresPasscode: true*/
+      numTokens: 2, */
+      requiresPasscode: false,
       semester: {
         term: 'Fall',
         year: 2018
@@ -87,7 +87,7 @@ class CreateCourseWizard extends React.Component {
     })
     .then(user => {
       toastr.success("Course successfully created");
-      this.props.history.push(`/courses/${course.courseid}/instructor/`);
+      this.props.history.replace(`${course.courseid}/instructor/`);
     })
     .catch(error => {
       toastr.error("Could not create course ", error)
@@ -139,11 +139,13 @@ class CreateCourseWizard extends React.Component {
             <label htmlFor="courseURL">Schedule URL</label>
             <input type="url" className="form-control" id="ohURL" name="ohURL"
               placeholder="http://www.cs.umd.edu/class/spring2018/cmsc330/#officehours"
+              value={this.state.ohURL}
               onChange={this.handleInputChange}/>
           </div>
           <div className="form-group">
-            <label htmlFor="numTokens">Tokens per day</label>
-            <select className="form-control" id="numTokens" name="numTokens"
+            <label htmlFor="dailyTokens">Tokens per day</label>
+            <select className="form-control" id="dailyTokens" name="dailyTokens"
+              value={this.state.dailyTokens}
               onChange={this.handleInputChange} defaultValue={5}>
               <option>1</option>
               <option>2</option>
@@ -162,7 +164,7 @@ class CreateCourseWizard extends React.Component {
           <div className="checkbox">
             <label>
               <input type="checkbox" id="requirePasscode" name="requiresPasscode"
-                onChange={this.handleInputChange} checked/> Require passcode
+                onChange={this.handleInputChange} checked={this.state.requiresPasscode}/> Require passcode
             </label>
           </div>
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import toastr from 'toastr';
 import { BrowserRouter as Router, Route, Link, Redirect, withRouter } from 'react-router-dom';
 import Ta from './components/Ta';
 import Student from './components/Student';
@@ -25,6 +26,9 @@ class App extends React.Component {
   setCourse = course => {
     if (course && isString(course.courseid) && isString(course._id)) {
       localStorage.setItem('lastCourse', course);
+      if (!this.state.course || (this.state.course._id != course._id)) {
+        toastr.info(`Welcome to ${course.courseid} office hours`, null, {timeOut: 2500});
+      }
       if (this.state.allCourses) {
         const recentCourseIds = storeRecentCourse(course._id);
         const recentCourses = this.state.allCourses.filter(course => recentCourseIds.includes(course._id));
@@ -204,6 +208,12 @@ class Nav extends React.Component {
     const course = this.props.course && this.props.course.courseid;
     const { user, recentCourses } = this.props;
     const roles = user && [user.role];
+    const { course: courseObj } = this.props;
+
+    let ohURL;
+    if (courseObj && courseObj.ohURL && courseObj.ohURL !== '') {
+      ohURL = courseObj.ohURL;
+    }
 
     return (
       <nav className="navbar">
@@ -270,11 +280,13 @@ class Nav extends React.Component {
                   <Link to="/courses">Select a course</Link>
                 </li>
               )}
-              <li>
-                <a className="oh-sched-link" href="#">
-                  OH Schedule
-                </a>
-              </li>
+              {
+                ohURL && <li>
+                  <a className="oh-sched-link" href={ohURL}>
+                    OH Schedule
+                  </a>
+                </li>
+              }
             </ul>
             <ul className="nav navbar-nav navbar-right">
               {user && (
