@@ -51,6 +51,7 @@ class AdminUsers extends React.Component {
           <h2>Global User Management</h2>
           <h3>Add user</h3>
           <UserAdd {...this.props} loadUserRoster={this.loadUserRoster} />
+
           <hr />
           <h3>Bulk user creation</h3>
           <CSVUpload {...this.props} loadUserRoster={this.loadUserRoster} />
@@ -58,6 +59,9 @@ class AdminUsers extends React.Component {
           <h3>Bulk user deletion</h3>
           <UserBulkDeletion {...this.props} loadUserRoster={this.loadUserRoster} />
           {/* Filter by criteria, like name */}
+          <hr />
+          <h3>All users</h3>
+
           <UserRoster
             {...this.props}
             userRoster={this.state.userRoster}

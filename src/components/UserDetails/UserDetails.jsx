@@ -86,7 +86,7 @@ class UserDetails extends React.Component {
 
     return (
       <div className="row" style={{ paddingTop: '15px' }}>
-        <div className="instr-sidebar-container col-xl-3 col-lg-3 col-md-3  device-xl device-lg device-md visible-xl visible-lg visible-md">
+        <div className="instr-sidebar-container col-xl-3 col-lg-3 col-md-3 device-xl device-lg device-md visible-xl visible-lg visible-md">
           <div className="affix">
             <h3>{user.name}</h3>
             <hr />
@@ -109,11 +109,11 @@ class UserDetails extends React.Component {
             <h3>{user.name}</h3>
             <hr />
             <p>
-              <strong>Directory ID:</strong>
+              <strong>Directory ID: </strong>
               {user.directoryID}
             </p>
             <p>
-              <strong>Role:</strong>
+              <strong>Role: </strong>
               {user.role}
             </p>
             <br />
@@ -128,7 +128,7 @@ class UserDetails extends React.Component {
           {hasAppPermission(this.props.user, 'user_mod') && <UserEdit user={user} handleSubmit={this.handleSubmit} />}
           <hr />
           <h3>Course Enrollment</h3>
-          <CoursesForUser queriedUser={user} allCourses={this.props.allCourses} />
+          <CoursesForUser {...this.props} updateUser={this.loadUser} queriedUser={user} />
           <AddToCourse {...this.props} queriedUser={user} />
           <h3>Stats</h3>
           {/*TODO: do this after August 2018 rollout */}
