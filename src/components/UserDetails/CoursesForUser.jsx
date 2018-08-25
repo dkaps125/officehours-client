@@ -32,6 +32,32 @@ class CoursesForUser extends React.Component {
       });
   };
 
+  deleteFromCourse(role) {
+    const { updateUser, client, queriedUser } = this.props;
+    client.service('/users').patch(
+      null,
+      {
+        $pull: { roles: { "_id": role._id } }
+      },
+      {
+        query: {
+          _id: queriedUser._id,
+          'roles._id': role._id
+        }
+      }
+    )
+    .then(user => {
+      toastr.success('Successfully removed user from course');
+      if (updateUser) {
+        updateUser();
+      }
+    })
+    .catch(err => {
+      toastr.error('Could not delete user. Ensure you have the correct user permissions');
+      console.log(err);
+    });
+  }
+
   render() {
     const { queriedUser, allCourses } = this.props;
     return (
@@ -41,15 +67,15 @@ class CoursesForUser extends React.Component {
             <th>Course</th>
             <th>Privilege</th>
             <th>Total tickets</th>
+            <th>Remove from course</th>
           </tr>
         </thead>
         <tbody>
-          {console.log('qu', queriedUser, allCourses)}
           {queriedUser &&
             queriedUser.roles &&
             queriedUser.roles.map((role, index) => (
               <tr key={role._id}>
-                <td>{courseForId(allCourses, role.course).courseid}</td>
+                <td>{courseForId(allCourses, role.course) ? courseForId(allCourses, role.course).courseid : role.course}</td>
                 <td>
                   {/*<select value={this.state.roles.get(index).selected} /> */}
                   <select value={role.privilege} onChange={event => this.selectRole(event, role._id)}>
@@ -59,6 +85,16 @@ class CoursesForUser extends React.Component {
                   </select>
                 </td>
                 <td>{role.totalTickets}</td>
+                <td>
+                  <a
+                    href="#"
+                    onClick={() => {
+                      this.deleteFromCourse(role);
+                    }}
+                  >
+                    Delete
+                  </a>
+                </td>
               </tr>
             ))}
         </tbody>
