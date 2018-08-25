@@ -3,18 +3,6 @@ import { Redirect } from 'react-router-dom';
 
 class Login extends React.Component {
 
-  constructor(props) {
-    super(props);
-    this.state = {};
-    // this isn't good practice, should grab user upstream & update from props
-    if (!!props.client) {
-      props.client.on('authWithUser', (user) => {
-        this.setState({user});
-      });
-
-    }
-  }
-
   componentDidMount() {
     document.body.classList.add('login-body');
   }
@@ -42,7 +30,8 @@ class Login extends React.Component {
   }
 
   render() {
-    if (!this.state.user) {
+    const { user } = this.props;
+    if (!user) {
       return <main className="container login-container text-center">
         <div className="login-box">
           <div className="login-btn-box">
