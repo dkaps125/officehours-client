@@ -95,7 +95,7 @@ class UserDetails extends React.Component {
               <strong>Directory ID:</strong> <span>{user.directoryID}</span>
             </p>
             {user.permissions &&
-              user.permissions.length && (
+              user.permissions.length > 0 && (
                 <div>
                   <p><strong>Privileges:</strong></p>
                   <span>{user.permissions.map(perm => <p key={perm + '_permsb'}>✔️ {perm}</p>)}</span>
