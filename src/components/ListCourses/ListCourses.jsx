@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { getCourse, courseForId, routeForUser } from '../../Utils';
+import { getCourse, courseForId, routeForUser, hasAppPermission } from '../../Utils';
 
 class ListCourses extends React.Component {
   /*
@@ -15,8 +15,8 @@ class ListCourses extends React.Component {
   getMyCourses = allCourses => {
     const { user } = this.props;
 
-    if (!user || !user.roles) {
-      return allCourses
+    if (!user || !user.roles || user.permissions.includes('admin')) {
+      return allCourses;
     }
     return user.roles.map(role => {
       return courseForId(allCourses, role.course);
@@ -85,6 +85,11 @@ class ListCourses extends React.Component {
       <div className="row" style={{ paddingTop: '15px' }}>
         <div className="col-md-9">
           <h2>Select a course</h2>
+          {hasAppPermission(user, 'admin') && (
+            <div className="alert alert-warning" role="alert">
+              Viewing all available courses as admin (including courses you are not enrolled in)
+            </div>
+          )}
           <br />
           {courses && courses.length > 0 ? (
             <ul>{courses.map(course => this.courseListing(course))}</ul>
@@ -94,7 +99,7 @@ class ListCourses extends React.Component {
             </h4>
           )}
           {// instructor legacy, TODO remove
-          (user.role === 'Instructor' || user.role === 'Admin') && (
+          (hasAppPermission(user, 'admin') || hasAppPermission(user, 'course_create')) && (
             <Link className="btn btn-info btn-lg fixedButton" to="/create_course">
               <strong>+</strong> Course
             </Link>
