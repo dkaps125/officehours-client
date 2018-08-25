@@ -70,7 +70,9 @@ class EditCourse extends React.Component {
       .remove(course._id)
       .then(res => {
         toastr.success('Course successfully deleted');
-        this.props.history.replace('/courses');
+        const newRoute = '/courses'
+        this.props.history.replace(newRoute);
+        localStorage.setItem('lastRoute', newRoute);
         this.props.setCourse(null, true);
 
       })

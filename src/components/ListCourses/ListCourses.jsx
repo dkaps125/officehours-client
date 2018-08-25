@@ -44,7 +44,9 @@ class ListCourses extends React.Component {
       <div
         onClick={() => {
           this.props.setCourse(course);
-          this.props.history.replace(routeForUser(this.props.user, course));
+          const newRoute = routeForUser(this.props.user, course);
+          this.props.history.replace(newRoute);
+          localStorage.setItem('lastRoute', newRoute);
         }}
         style={{ cursor: 'pointer' }}
         className="panel-body"

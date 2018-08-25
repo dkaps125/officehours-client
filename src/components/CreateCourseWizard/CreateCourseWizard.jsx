@@ -87,8 +87,11 @@ class CreateCourseWizard extends React.Component {
     })
     .then(user => {
       toastr.success("Course successfully created");
-      this.props.setCourse(course, true)
-      this.props.history.replace(`${course.courseid}/instructor/`);
+      this.props.setCourse(course, true);
+
+      const newRoute = `${course.courseid}/instructor/`;
+      this.props.history.replace(newRoute);
+      localStorage.setItem('lastRoute', newRoute);
     })
     .catch(error => {
       toastr.error("Could not create course ", error)
