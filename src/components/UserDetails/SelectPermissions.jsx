@@ -2,7 +2,7 @@ import React from 'react';
 import toastr from 'toastr';
 import { courseForId, idForSoftCourseId, roleForUserDbId } from '../../Utils/';
 
-const permissions = ['course_create', 'course_mod', 'user_create', 'user_mod', 'user_delete', 'user_view', 'admin'];
+const permissions = ['course_create', 'course_mod', 'user_create', 'user_mod', 'user_view', 'admin'];
 
 //const AddToCourse = ({ queriedUser, allCourses, addToCourse }) => (
 class SelectPermissions extends React.Component {

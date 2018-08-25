@@ -103,7 +103,7 @@ class UserDetails extends React.Component {
               )}
             <br />
             {!isThisMe &&
-              hasAppPermission(this.props.user, 'user_del') && (
+              hasAppPermission(this.props.user, 'admin') && (
                 <button onClick={this.deleteUser} className="instr-only btn btn-warning">
                   Delete user
                 </button>
