@@ -10,6 +10,8 @@ import CSVUpload from './CSVUpload.jsx';
 import UserAdd from './UserAdd.jsx';
 import EditCourse from './EditCourse.jsx';
 
+import {hasAppPermission, isInstructor} from '../../Utils';
+
 import toastr from 'toastr';
 
 class Instructor extends React.Component {
@@ -67,6 +69,12 @@ class Instructor extends React.Component {
         </div>
         <div className="col-md-9">
           <h3>Dashboard for {`"${this.props.course.title}"`}</h3>
+            {hasAppPermission(this.props.user, 'admin') &&
+              !isInstructor(this.props.user, course) && (
+                <div className="alert alert-warning">
+                  <strong>Viewing course as admin:</strong> You are not enrolled in this course. If you wish to submit tickets, please enroll.
+                </div>
+              )}
           <EditCourse {...this.props} />
           <hr />
           <h3>Live student queue</h3>
