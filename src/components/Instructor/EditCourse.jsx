@@ -1,5 +1,6 @@
 import React from 'react';
 import toastr from 'toastr';
+import { hasAppPermission } from '../../Utils';
 
 class EditCourse extends React.Component {
   state = {
@@ -59,6 +60,26 @@ class EditCourse extends React.Component {
         console.log(err);
       });
   };
+
+  deleteCourse = event => {
+    event.preventDefault();
+    const { course, client } = this.props;
+    if (window.confirm("Are you sure you want to permanently delete this course")) {
+      client
+      .service('/courses')
+      .remove(course._id)
+      .then(res => {
+        toastr.success('Course successfully deleted');
+        this.props.history.replace('/courses');
+        this.props.setCourse(null, true);
+
+      })
+      .catch(err => {
+        toastr.error('Could not delete course');
+        console.log(err);
+      });
+    }
+  }
 
   render() {
     return (
@@ -125,6 +146,14 @@ class EditCourse extends React.Component {
             Submit edits
           </button>
         </form>
+        {hasAppPermission(this.props.user, 'admin') && (
+          <div style={{ marginTop: '15px' }}>
+            <p>
+              <strong>Admin only:</strong>
+            </p>
+            <button className="btn btn-warning" onClick={this.deleteCourse}>Delete {this.props.course.courseid}</button>
+          </div>
+        )}
       </div>
     );
   }

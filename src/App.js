@@ -34,7 +34,7 @@ const auth = require('@feathersjs/authentication-client');
 const ConnectedLogin = withUser(Login);
 
 class App extends React.Component {
-  setCourse = course => {
+  setCourse = (course, serviceUpdate) => {
     if (course && isString(course.courseid) && isString(course._id)) {
       localStorage.setItem('lastCourse', course);
       if (!this.state.course || this.state.course._id != course._id) {
@@ -50,6 +50,23 @@ class App extends React.Component {
     } else {
       localStorage.removeItem('lastCourse');
       this.setState({ course: null });
+    }
+
+    // refresh allCourses in case course was modified or deleted
+    if (this.state.client && serviceUpdate) {
+      this.state.client
+        .service('/courses')
+        .find()
+        .then(courses => {
+
+          const recentCourseIds = getRecentCourses();
+          const recentCourses = courses.data.filter(course => recentCourseIds.includes(course._id));
+          this.setState({ recentCourses, allCourses: courses.data });
+        })
+        .catch(err => {
+          toastr.error('Could not refresh courses, please check your internet connection and refresh');
+          console.error(err);
+        });
     }
   };
 
@@ -129,6 +146,7 @@ class App extends React.Component {
           this.setState({ user: null, authenticated: false });
         } else {
           console.error('Error on feathers auth:', err);
+          //toastr.error('Could not refresh courses, please check your internet connection and refresh');
         }
       });
 
