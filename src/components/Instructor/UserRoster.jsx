@@ -1,9 +1,8 @@
 import React from 'react';
 import toastr from 'toastr';
-import { genUserElt, privForUser, courseForId } from '../../Utils';
+import { genUserElt, privForUser, courseForId, roleForUser, hasAppPermission } from '../../Utils';
 
 class UserRoster extends React.Component {
-
   constructor(props) {
     super(props);
     this.state = {
@@ -18,11 +17,49 @@ class UserRoster extends React.Component {
     }
   };
 
+  deleteFromCourse(role) {
+    const { updateUser, client, queriedUser } = this.props;
+  }
+
   deleteUser = user => {
-    if (window.confirm('Are you sure you want to permanently delete this user?')) {
-      this.props.client
+    const { course, client } = this.props;
+
+    if (course && window.confirm('Are you sure you want to remove this user from this course?')) {
+      const role = roleForUser(user, course);
+
+      if (!role) {
+        console.error('no role', role);
+        return;
+      }
+      client
         .service('/users')
-        .remove(user)
+        .patch(
+          null,
+          {
+            $pull: { roles: { _id: role._id } }
+          },
+          {
+            query: {
+              _id: user._id,
+              'roles._id': role._id
+            }
+          }
+        )
+        .then(user => {
+          toastr.success('Successfully removed user from course');
+          this.props.loadUser && this.props.loadUserRoster();
+        })
+        .catch(err => {
+          toastr.error('Could not delete user. Ensure you have the correct user permissions');
+          console.log(err);
+        });
+
+    }
+
+    if (!course && window.confirm('Are you sure you want to permanently delete this user?')) {
+      client
+        .service('/users')
+        .remove(user._id)
         .then(res => {
           toastr.success('User successfully removed');
           this.props.loadUser && this.props.loadUserRoster();
@@ -111,10 +148,10 @@ class UserRoster extends React.Component {
         </td>
         <td>{role || this.renderCoursesForUser(user)}</td>
         <td>
-          {!userIsMe && amIUserAdmin ? (
+          {!userIsMe || (!course && !userIsMe && hasAppPermission(user, 'admin')) ? (
             <a
               onClick={() => {
-                this.deleteUser(user._id);
+                this.deleteUser(user);
               }}
             >
               Delete ✖
