@@ -1,5 +1,6 @@
 import React from 'react';
 import toastr from 'toastr';
+import { roleForUser } from '../../Utils';
 
 class UserAdd extends React.Component {
   constructor(props) {
@@ -23,35 +24,87 @@ class UserAdd extends React.Component {
 
   userCreate = event => {
     event.preventDefault();
+    const { course, client } = this.props;
 
     if (!this.state.name || !this.state.directoryID || !this.state.role) {
       toastr.warning('Missing field in user creation form');
       return;
     }
-    const roles = [
-      {
-        privilege: this.state.role,
-        course: this.props.course._id
-      }
-    ];
-    const newUser = {
-      name: this.state.name,
-      directoryID: this.state.directoryID,
-      roles
-    };
 
-    this.props.client
-      .service('/users')
-      .create(newUser)
-      .then(res => {
-        toastr.success('User ' + this.state.name + ' successfully created');
-        this.setState({ name: '', directoryID: '' });
-        this.props.loadUserRoster();
-      })
-      .catch(function(err) {
-        toastr.error('Could not create user with this directory ID and name');
-        console.error(err);
-      });
+    // this is in the Instructor page
+    let roles = [];
+
+    client.service('/users')
+    .find({
+      query: {
+        directoryID: this.state.directoryID
+      }
+    }).then(res => {
+      // user with this directory id is found
+      if (res.data && res.data.length > 0) {
+        // if this is not in the instr dashboard, we can't dupe a user
+        if (!course) {
+          toastr.error('This user already exists');
+          return;
+        }
+        // check user already enrolled
+        if (roleForUser(res.data[0], course)) {
+          toastr.error('This user is already enrolled in this course');
+          return;
+        }
+
+        // enroll
+        client
+          .service('/users')
+          .patch(res.data[0]._id, {
+            $push: {
+              roles: {
+                privilege: this.state.role,
+                course: course._id
+              }
+            }
+          })
+          .then(res => {
+            toastr.success(`User ${this.state.directoryID} already exists, adding to ${course.courseid}`);
+            this.setState({ name: '', directoryID: '' });
+            this.props.loadUserRoster();
+          })
+          .catch(err => {
+            toastr.error(`Could not enroll user in course: ${err.toString()}`);
+            console.log(err);
+          });
+
+      } else {
+        if (course) {
+          roles = [
+            {
+              privilege: this.state.role,
+              course: course._id
+            }
+          ];
+        }
+
+        const newUser = {
+          name: this.state.name,
+          directoryID: this.state.directoryID,
+          roles
+        };
+
+        client
+          .service('/users')
+          .create(newUser)
+          .then(res => {
+            toastr.success('User ' + this.state.name + ' successfully created');
+            this.setState({ name: '', directoryID: '' });
+            this.props.loadUserRoster();
+          })
+          .catch(function(err) {
+            toastr.error('Could not create user with this directory ID and name');
+            console.error(err);
+          });
+      }
+    })
+
   };
 
   render() {
