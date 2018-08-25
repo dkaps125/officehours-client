@@ -11,7 +11,18 @@ import UserDetails from './components/UserDetails';
 import CreateCourseWizard from './components/CreateCourseWizard';
 import ListCourses from './components/ListCourses';
 import AdminUsers from './components/AdminUsers';
-import { getCourse, isString, getRecentCourses, storeRecentCourse, routeForUser } from './Utils';
+import Configure from './components/Configure';
+import {
+  getCourse,
+  isString,
+  getRecentCourses,
+  storeRecentCourse,
+  routeForUser,
+  hasAppPermission,
+  hasCoursePermission,
+  isInstructor,
+  isInstructorOrTa
+} from './Utils';
 
 import { defaultContext, UserContext, withUser, withUserRequireCourse } from './api/UserStore';
 
@@ -26,8 +37,8 @@ class App extends React.Component {
   setCourse = course => {
     if (course && isString(course.courseid) && isString(course._id)) {
       localStorage.setItem('lastCourse', course);
-      if (!this.state.course || (this.state.course._id != course._id)) {
-        toastr.info(`Welcome to ${course.courseid} office hours`, null, {timeOut: 2500});
+      if (!this.state.course || this.state.course._id != course._id) {
+        toastr.info(`Welcome to ${course.courseid} office hours`, null, { timeOut: 2500 });
       }
       if (this.state.allCourses) {
         const recentCourseIds = storeRecentCourse(course._id);
@@ -135,6 +146,7 @@ class App extends React.Component {
           <React.Fragment>
             <RoutedNav />
             <div id="main" className="container login-container">
+              {this.state.authenticated === false && <Route exact path="/configure" component={Configure} />}
               {this.state.authenticated === true ? (
                 <React.Fragment>
                   <ConnectedRoute exact path="/" component={Login} />
@@ -205,14 +217,12 @@ class Nav extends React.Component {
 
   // TODO: <li className="active"> <span className="sr-only">(current)</span>
   render() {
-    const course = this.props.course && this.props.course.courseid;
+    const { course } = this.props;
     const { user, recentCourses } = this.props;
-    const roles = user && [user.role];
-    const { course: courseObj } = this.props;
-
+    const courseId = course && course.courseid;
     let ohURL;
-    if (courseObj && courseObj.ohURL && courseObj.ohURL !== '') {
-      ohURL = courseObj.ohURL;
+    if (course && course.ohURL && course.ohURL !== '') {
+      ohURL = course.ohURL;
     }
 
     return (
@@ -232,61 +242,78 @@ class Nav extends React.Component {
               <span className="icon-bar" />
             </button>
             <a className="navbar-brand dropdown-toggle" data-toggle="dropdown" href="#">
-              {((course && course.toUpperCase()) || '') + ' Office Hours'}
+              {((courseId && courseId.toUpperCase()) || '') + ' Office Hours'}
               <span className="caret" />
             </a>
             <ul className="dropdown-menu" style={{ marginLeft: '25px' }}>
               {recentCourses && (
                 <React.Fragment>
                   <li>
-                    <a>Recent courses:</a>
+                    <a>Recent courses</a>
                   </li>
+                  <li role="separator" className="divider" />
                   {recentCourses.map(
                     course =>
                       course && (
                         <li key={course._id + '_list'}>
-                          <Link key={'nav_'+course._id} to={routeForUser(user, course)} onClick={() => {this.props.setCourse(course)}}>
+                          <Link
+                            key={'nav_' + course._id}
+                            to={routeForUser(user, course)}
+                            onClick={() => {
+                              this.props.setCourse(course);
+                            }}
+                          >
                             {course.courseid}
                           </Link>
                         </li>
                       )
                   )}
-                  <li role="separator" className="divider" />
                 </React.Fragment>
               )}
+              <li role="separator" className="divider" />
               <li>
                 <Link to="/courses">All courses</Link>
               </li>
               {/*should we put a "manage course" dupe link to instr dashboard?*/}
-              <li>
-                <Link to="/admin_users">Manage users</Link>
-              </li>
-              <li role="separator" className="divider" />
-              <li>
-                <Link to="/create_course">+ New Course</Link>
-              </li>
+              {(hasAppPermission(user, 'admin') || hasAppPermission(user, 'user_mod')) && (
+                <li>
+                  <Link to="/admin_users">Manage users</Link>
+                </li>
+              )}
+              {(hasAppPermission(user, 'admin') || hasAppPermission(user, 'course_create')) && (
+                <React.Fragment>
+                  <li role="separator" className="divider" />
+                  <li>
+                    <Link to="/create_course">+ New Course</Link>
+                  </li>
+                </React.Fragment>
+              )}
             </ul>
           </div>
           <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul className="nav navbar-nav">
-              {course && roles.includes('Instructor') && this.genLink('instructor', 'Instructor Home')}
-              {course && (roles.includes('Instructor') || roles.includes('TA')) && this.genLink('ta', 'TA Home')}
               {course &&
-                (roles.includes('Instructor') || roles.includes('TA')) &&
-                this.genLink('tickets', 'Ticket History')}
-              {course && roles.includes('Student') && this.genLink('students', 'Home')}
+                (hasAppPermission(user, 'admin') || isInstructor(user, course)) &&
+                this.genLink('instructor', 'Instructor Home')}
+              {course &&
+                (hasAppPermission(user, 'admin') || isInstructorOrTa(user, course)) &&
+                this.genLink('ta', 'TA Home')}
+              {course &&
+                (hasAppPermission(user, 'admin') || hasAppPermission(user, 'user_view')) &&
+                this.genLink('tickets', 'Course Ticket History')}
+              {course && hasCoursePermission(course, user, 'Student') && this.genLink('students', 'Home')}
               {!course && (
                 <li>
                   <Link to="/courses">Select a course</Link>
                 </li>
               )}
-              {
-                ohURL && <li>
+              {ohURL && (
+                <li>
                   <a className="oh-sched-link" href={ohURL}>
                     OH Schedule
                   </a>
                 </li>
-              }
+              )}
             </ul>
             <ul className="nav navbar-nav navbar-right">
               {user && (
