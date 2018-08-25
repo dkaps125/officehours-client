@@ -118,7 +118,17 @@ class UserRoster extends React.Component {
     const query = queryEvent.target.value.toLowerCase();
 
     const searchResults = this.props.userRoster.filter(ele => {
-      return ele.name.toLowerCase().includes(query) || ele.directoryID.includes(query);
+      const courses = ele.roles.map(role => {
+        return courseForId(this.props.allCourses, role.course).courseid;
+      });
+
+      return (
+        ele.name.toLowerCase().includes(query) ||
+        ele.directoryID.includes(query) ||
+        courses.reduce((acc, val) => {
+          return acc || val.toLowerCase().includes(query);
+        }, false)
+      );
     });
 
     this.setState({
