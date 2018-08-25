@@ -5,6 +5,7 @@ import TicketHistory from '../TicketHistory';
 import CoursesForUser from './CoursesForUser.jsx';
 import UserEdit from './UserEdit.jsx';
 import AddToCourse from './AddToCourse.jsx';
+import SelectPermissions from './SelectPermissions.jsx';
 
 class UserDetails extends React.Component {
   state = { user: null };
@@ -93,15 +94,20 @@ class UserDetails extends React.Component {
             <p>
               <strong>Directory ID:</strong> <span>{user.directoryID}</span>
             </p>
-            <p>
-              <strong>Privileges:</strong> <span>{user.role}</span>
-            </p>
+            {user.permissions &&
+              user.permissions.length && (
+                <div>
+                  <p><strong>Privileges:</strong></p>
+                  <span>{user.permissions.map(perm => <p key={perm + '_permsb'}>✔️ {perm}</p>)}</span>
+                </div>
+              )}
             <br />
-            {!isThisMe && hasAppPermission(this.props.user, 'user_del') && (
-              <button onClick={this.deleteUser} className="instr-only btn btn-warning">
-                Delete user
-              </button>
-            )}
+            {!isThisMe &&
+              hasAppPermission(this.props.user, 'user_del') && (
+                <button onClick={this.deleteUser} className="instr-only btn btn-warning">
+                  Delete user
+                </button>
+              )}
           </div>
         </div>
         <div className="col-md-3 device-sm device-xs visible-sm visible-xs">
@@ -112,24 +118,38 @@ class UserDetails extends React.Component {
               <strong>Directory ID: </strong>
               {user.directoryID}
             </p>
-            <p>
-              <strong>Role: </strong>
-              {user.role}
-            </p>
             <br />
             {!isThisMe && (
-              <button onClick={this.deleteUser} className="instr-only btn btn-warning">
+              <button onClick={this.deleteUser} className="btn btn-warning">
                 Delete user
               </button>
             )}
           </div>
         </div>
         <div className="col-xl-9 col-lg-9 col-md-9">
-          {hasAppPermission(this.props.user, 'user_mod') && <UserEdit user={user} handleSubmit={this.handleSubmit} />}
+          <h2>User details</h2>
           <hr />
-          <h3>Course Enrollment</h3>
-          <CoursesForUser {...this.props} updateUser={this.loadUser} queriedUser={user} />
-          <AddToCourse {...this.props} queriedUser={user} />
+          {hasAppPermission(this.props.user, 'user_mod') && (
+            <React.Fragment>
+              <UserEdit user={user} handleSubmit={this.handleSubmit} noRole />
+              <hr />
+            </React.Fragment>
+          )}
+          {hasAppPermission(this.props.user, 'user_mod') && (
+            <React.Fragment>
+              <h3>Course Enrollment</h3>
+              <AddToCourse {...this.props} updateUser={this.loadUser} queriedUser={user} />
+              <CoursesForUser {...this.props} updateUser={this.loadUser} queriedUser={user} />
+            </React.Fragment>
+          )}
+          {hasAppPermission(this.props.user, 'admin') && (
+            <React.Fragment>
+              <hr />
+              <h3>Global app permissions</h3>
+              <SelectPermissions {...this.props} updateUser={this.loadUser} queriedUser={user} />
+            </React.Fragment>
+          )}
+          <hr />
           <h3>Stats</h3>
           {/*TODO: do this after August 2018 rollout */}
           <div className="well">Coming soon</div>
