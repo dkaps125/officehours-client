@@ -177,7 +177,7 @@ class UserRoster extends React.Component {
   render() {
     return (
       <div>
-        <form className="form-inline">
+        <form className="form-inline" style={{ float: 'right', marginBottom: '5px' }}>
           <input type="text" className="form-control" onKeyUp={this.searchTable} placeholder="Search..." />
         </form>
         <table className="table table-striped" data-sortorder="1">
