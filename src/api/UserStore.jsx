@@ -1,7 +1,10 @@
 import React from "react";
 import ListCourses from "../components/ListCourses";
 
+const __API = 'http://localhost:3030';
+
 const defaultContext = {
+  api: __API,
   user: null,
   authenticated: false,
   course: null,
@@ -31,4 +34,4 @@ const withUserRequireCourse = Component => props => (
   </UserContext.Consumer>
 );
 
-export { defaultContext, UserContext, withUser, withUserRequireCourse };
+export { defaultContext, UserContext, withUser, withUserRequireCourse, __API };

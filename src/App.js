@@ -24,7 +24,7 @@ import {
   isInstructorOrTa
 } from './Utils';
 
-import { defaultContext, UserContext, withUser, withUserRequireCourse } from './api/UserStore';
+import { defaultContext, UserContext, withUser, withUserRequireCourse, __API } from './api/UserStore';
 
 const io = require('socket.io-client');
 const feathers = require('@feathersjs/feathers');
@@ -35,11 +35,17 @@ const ConnectedLogin = withUser(Login);
 
 class App extends React.Component {
   setCourse = (course, serviceUpdate) => {
+    if (!this.state.client) {
+      return;
+    }
     if (course && isString(course.courseid) && isString(course._id)) {
       localStorage.setItem('lastCourse', course);
       if (!this.state.course || this.state.course._id != course._id) {
         toastr.info(`Welcome to ${course.courseid} office hours`, null, { timeOut: 2500 });
       }
+      const socket = this.state.client.get('socket');
+      socket.emit('join course', course._id);
+      this.state.client.emit('join course');
       if (this.state.allCourses) {
         const recentCourseIds = storeRecentCourse(course._id);
         const recentCourses = this.state.allCourses.filter(course => recentCourseIds.includes(course._id));
@@ -58,7 +64,6 @@ class App extends React.Component {
         .service('/courses')
         .find()
         .then(courses => {
-
           const recentCourseIds = getRecentCourses();
           const recentCourses = courses.data.filter(course => recentCourseIds.includes(course._id));
           this.setState({ recentCourses, allCourses: courses.data });
@@ -93,7 +98,7 @@ class App extends React.Component {
   constructor(props) {
     super(props);
 
-    const socket = io('http://localhost:3030', {
+    const socket = io(__API, {
       secure: true,
       transports: ['websocket'],
       forceNew: true
