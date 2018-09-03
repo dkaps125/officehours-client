@@ -1,6 +1,6 @@
-import React from "react";
-import AvailableTas from "../AvailableTas";
-import toastr from "toastr";
+import React from 'react';
+import AvailableTas from '../AvailableTas';
+import toastr from 'toastr';
 
 class Student extends React.Component {
   constructor(props) {
@@ -10,38 +10,68 @@ class Student extends React.Component {
       studentsInQueue: 0,
       numStudentsAheadOfMe: 0,
       numTokens: 0,
-      currentResponder: "",
-      curTicketDesc: "",
+      currentResponder: '',
+      curTicketDesc: '',
       hasUnfulfilledTicket: false,
       curReq: {},
       lastTicketCancelled: false
     };
-    this.setNumTokens();
-    const socket = this.props.client.get("socket");
-    socket.on("queue update", this.setNumTokens);
-  }
-
-  componentWillUnmount() {
-    const socket = this.props.client.get("socket");
-    socket.removeListener("queue update", this.setNumTokens);
   }
 
   componentDidMount() {
-    // this.setState({ numTas: 1 });
+    const { course } = this.props;
+    this.setNumTokens();
+    if (course) {
+      this.addListener(course);
+    }
   }
+
+  componentWillUnmount() {
+    this.removeListener(this.props.course);
+  }
+
+  componentDidUpdate(prevProps) {
+    const { course: newCourse, client } = this.props;
+    const { course: oldCourse } = prevProps;
+
+    // if we switched courses, remove old listeners
+    if (oldCourse && (!newCourse || newCourse._id !== oldCourse._id)) {
+      this.removeListener(oldCourse);
+    }
+
+    if (newCourse && (!oldCourse || oldCourse._id !== newCourse._id)) {
+      this.addListener(newCourse);
+    }
+  }
+
+  addListener = course => {
+    const { client } = this.props;
+
+    const socket = client.get('socket');
+    socket.on(`ticket update ${this.props.course._id}`, this.setNumTokens);
+    socket.on(`ticket create ${this.props.course._id}`, this.setNumTokens);
+  };
+
+  removeListener = course => {
+    const { client } = this.props;
+
+    const socket = client.get('socket');
+    socket.removeListener(`ticket update ${this.props.course._id}`, this.setNumTokens);
+    socket.removeListener(`ticket create ${this.props.course._id}`, this.setNumTokens);
+  };
 
   setNumTokens = () => {
     const { client, course } = this.props;
-    const getNumToks = client.service("/numtokens").get(course._id);
-    const getUnfulfilledToks = client.service("/tokens").find({
+    const getNumToks = client.service('/numtokens').get(course._id);
+    const getUnfulfilledToks = client.service('/tokens').find({
       query: {
         fulfilled: false,
         $limit: 0,
         course: course._id
       }
     });
-    const getQueuePos = client.service("/queue-position").get({});
-    const getCurrentTicket = client.service("/tokens").find({
+    const getQueuePos = client.service('/queue-position').get({});
+    const getCurrentTicket = client.service('/tokens').find({
       query: {
         $limit: 1,
         fulfilled: true,
@@ -61,7 +91,7 @@ class Student extends React.Component {
         const numStudentsAheadOfMe = res[2].peopleAheadOfMe + 1;
         //const currentTicket = res[3].data.length > 0 ? res[3].data[0] : null;
         if (numUnfulfilledTickets === 0 && this.state.numUnfulfilledTickets > 0 && !this.state.lastTicketCancelled) {
-          toastr.success("You have been dequeued by a TA!", { timeout: 15000 });
+          toastr.success('You have been dequeued by a TA!', { timeout: 15000 });
           //} else if (numUnfulfilledTickets > 0) {
           //this.getCurrentTicket();
         }
@@ -87,20 +117,19 @@ class Student extends React.Component {
     const { curReq } = this.state;
     const req = { ...this.state.curReq, course: course._id };
 
-    console.log(req);
     client
-      .service("/tokens")
+      .service('/tokens')
       .create(req)
       .then(ticket => {
         this.setNumTokens();
-        toastr.success("Your help request has been submitted!");
+        toastr.success('Your help request has been submitted!');
       })
       .catch(err => {
-        var errMsg = "Your help request could not be submitted: ";
+        var errMsg = 'Your help request could not be submitted: ';
         if (this.state.numTokens <= 0) {
-          errMsg += "You are out of tokens.";
+          errMsg += 'You are out of tokens.';
         } else {
-          errMsg += !!err.message ? err.message + "." : "";
+          errMsg += !!err.message ? err.message + '.' : '';
         }
         toastr.error(errMsg);
       });
@@ -112,7 +141,7 @@ class Student extends React.Component {
     const { client, course } = this.props;
 
     client
-      .service("/tokens")
+      .service('/tokens')
       .find({
         query: {
           $limit: 1,
@@ -125,8 +154,8 @@ class Student extends React.Component {
         }
       })
       .then(tickets => {
-        let currentResponder = "";
-        let curTicketDesc = "";
+        let currentResponder = '';
+        let curTicketDesc = '';
         let currentTicket = null;
 
         if (tickets.total >= 1 && tickets.data[0].fulfilled) {
@@ -136,7 +165,7 @@ class Student extends React.Component {
             // TODO: push notif
           }
           currentResponder = `${currentTicket.fulfilledByName} is assisting you`;
-          curTicketDesc = currentTicket.desc || "No description provided";
+          curTicketDesc = currentTicket.desc || 'No description provided';
         }
 
         this.setState({ currentResponder, curTicketDesc, currentTicket });
@@ -149,7 +178,7 @@ class Student extends React.Component {
   cancelRequest = () => {
     const { client, course } = this.props;
     client
-      .service("/tokens")
+      .service('/tokens')
       .find({
         query: {
           fulfilled: false,
@@ -159,33 +188,33 @@ class Student extends React.Component {
       .then(tickets => {
         tickets.data.map(ticket => {
           client
-            .service("/tokens")
+            .service('/tokens')
             .patch(ticket._id, {
               fulfilled: true,
               cancelledByStudent: true
             })
             .then(ticket => {
               this.setState({ lastTicketCancelled: true });
-              toastr.warning("Your help ticket has been canceled");
+              toastr.warning('Your help ticket has been canceled');
               this.setNumTokens();
             })
             .catch(function(err) {
-              console.error(err);
-              toastr.error(err.message || "Cannot cancel ticket");
+              console.error('cancelRequest r2', err);
+              toastr.error(err.message || 'Cannot cancel ticket');
             });
           return ticket;
         });
       })
       .catch(err => {
-        console.error(err);
-        toastr.error(err.message || "Cannot cancel ticket");
+        console.error('cancelRequest r1', err);
+        toastr.error(err.message || 'Cannot cancel ticket');
       });
   };
 
   cancelSpecificTicket = ticket => {
     const { client } = this.props;
     client
-      .service("/tokens")
+      .service('/tokens')
       .patch(ticket._id, {
         fulfilled: true,
         cancelledByStudent: true,
@@ -193,12 +222,12 @@ class Student extends React.Component {
       })
       .then(ticket => {
         this.setState({ lastTicketCancelled: true });
-        toastr.warning("Your help ticket has been canceled");
+        toastr.warning('Your help ticket has been canceled');
         this.setNumTokens();
       })
       .catch(err => {
         console.error(err);
-        toastr.error(err.message || "Cannot cancel ticket");
+        toastr.error(err.message || 'Cannot cancel ticket');
       });
   };
 
@@ -213,7 +242,7 @@ class Student extends React.Component {
 
   render() {
     return (
-      <div className="row" style={{ paddingTop: "15px" }}>
+      <div className="row" style={{ paddingTop: '15px' }}>
         <div className="col-md-3">
           <AvailableTas {...this.props} />
         </div>
@@ -273,7 +302,7 @@ class Student extends React.Component {
                     type="button"
                     onClick={this.cancelRequest}
                     className="btn btn-danger"
-                    style={{ marginTop: "10px" }}
+                    style={{ marginTop: '10px' }}
                   >
                     Cancel request
                   </button>

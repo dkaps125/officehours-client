@@ -1,5 +1,6 @@
 import React from 'react';
 import { Redirect } from 'react-router-dom';
+import { __API } from '../../api/UserStore';
 
 class Login extends React.Component {
 
@@ -15,7 +16,7 @@ class Login extends React.Component {
     event.preventDefault();
     localStorage.setItem('lastRoute', window.location.pathname);
 
-    window.location.href = "http://localhost:3030/cas_login";
+    window.location.href = `${__API}cas_login`;
   }
 
   getNextRoute = () => {
