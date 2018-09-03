@@ -71,7 +71,7 @@ class UserAdd extends React.Component {
           })
           .catch(err => {
             toastr.error(`Could not enroll user in course: ${err.toString()}`);
-            console.log(err);
+            console.error('userAdd', err);
           });
 
       } else {

@@ -54,7 +54,6 @@ class Instructor extends React.Component {
         fulfilled: false,
       }
     }).then(tickets => {
-      console.log({studentsInQueue: tickets.total})
       this.setState({studentsInQueue: tickets.total});
     }).catch(console.error);
   }

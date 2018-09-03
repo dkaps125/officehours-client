@@ -8,9 +8,11 @@ class CSVUpload extends React.Component {
 
   handleFileUpload = event => {
     event.preventDefault();
+    const { api } = this.props;
+
     var form = new FormData();
     form.append('userfile', this.csvFile.files[0]);
-    fetch('http://localhost:3030/csvUpload', {
+    fetch(`${api}/csvUpload`, {
       method: 'POST',
       body: form,
       headers: {
