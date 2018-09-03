@@ -74,7 +74,6 @@ class CreateCourseWizard extends React.Component {
 
     client.service('/courses').create(course)
     .then(course => {
-      // TODO: redirect to course page
       return client.service('/users').patch(user._id, {
         $push: {
           roles: {

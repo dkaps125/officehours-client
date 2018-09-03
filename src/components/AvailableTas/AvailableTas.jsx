@@ -1,4 +1,4 @@
-import React from "react";
+import React from 'react';
 
 class AvailableTas extends React.Component {
   constructor(props) {
@@ -10,18 +10,48 @@ class AvailableTas extends React.Component {
   }
 
   componentDidMount() {
-    const socket = this.props.client.get("socket");
-    socket.on("availabletas updated", this.getAvailableTAs);
+    const { course } = this.props;
     this.getAvailableTAs();
+    if (course) {
+      this.addListener(course);
+    }
+  }
+
+  componentDidUpdate(prevProps) {
+    const { course: newCourse, client } = this.props;
+    const { course: oldCourse } = prevProps;
+
+    // if we switched courses, remove old listeners
+    if (oldCourse && (!newCourse || newCourse._id !== oldCourse._id)) {
+      this.removeListener(oldCourse);
+    }
+
+    if (newCourse && (!oldCourse || oldCourse._id !== newCourse._id)) {
+      this.addListener(newCourse);
+    }
   }
 
   componentWillUnmount() {
-    const socket = this.props.client.get("socket");
-    socket.removeListener("availabletas updated", this.getAvailableTAs);
+    this.removeListener(this.props.course);
   }
+
+  addListener = course => {
+    const { client } = this.props;
+
+    const socket = client.get('socket');
+    socket.on(`availabletas updated ${course._id}`, this.getAvailableTAs);
+  };
+
+  removeListener = course => {
+    const { client } = this.props;
+
+    const socket = client.get('socket');
+    socket.removeListener(`availabletas updated ${course._id}`, this.getAvailableTAs);
+  };
 
   getAvailableTAs = () => {
     const { client, course } = this.props;
+
     client
       .service('/availabletas')
       .find({ query: { course: course._id } })
@@ -30,7 +60,7 @@ class AvailableTas extends React.Component {
       })
       .catch(err => {
         console.error('Error while fetching available TAs', err);
-      })
+      });
   };
 
   render() {

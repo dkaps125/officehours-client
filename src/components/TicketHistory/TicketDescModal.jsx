@@ -25,8 +25,6 @@ class TicketDescModal extends React.Component {
 
   componentDidUpdate(oldProps, oldState) {
     if (!oldProps.visible && this.props.visible) {
-      console.log("SHOW");
-      console.log(window.$(ReactDOM.findDOMNode(this)));
       window.$(ReactDOM.findDOMNode(this)).modal('show');
     } else if (oldProps.visible && !this.props.visible) {
       //$(ReactDOM.findDOMNode(this)).modal('hide');

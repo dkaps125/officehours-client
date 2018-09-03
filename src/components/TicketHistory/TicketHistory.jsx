@@ -22,7 +22,7 @@ class TicketHistory extends React.Component {
 
   componentDidUpdate(prevProps) {
     const { course: newCourse } = this.props;
-    const { course: oldCourse } = this.props;
+    const { course: oldCourse } = prevProps;
 
     if (newCourse && !oldCourse) {
       this.updateTicketList(0);
