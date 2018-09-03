@@ -162,7 +162,7 @@ class TicketHistory extends React.Component {
     return (
       <div>
         <h3>Ticket history ({this.state.tickets.length})</h3>
-        <form className="form-inline">
+        <form className="form-inline" style={{ float: 'right', marginBottom: '5px' }}>
           <input type="text" className="form-control" onKeyUp={this.searchTable} placeholder="Search..." />
         </form>
         <InfiniteScroll
