@@ -1,6 +1,7 @@
 import React from "react";
 import PreviousComments from "./PreviousComments.jsx";
 
+// TODO: greg refactor
 class Comments extends React.Component {
   constructor(props) {
     super(props);
@@ -202,7 +203,7 @@ class Comments extends React.Component {
             id="noshow-btn"
             type="submit"
             onClick={this.props.markNoshow}
-            className="btn"
+            className="btn btn-default"
             style={{ display: "inline", marginLeft: "10px" }}
           >
             No show

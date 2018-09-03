@@ -1,9 +1,9 @@
-import React from "react";
-import AvailableTas from "../AvailableTas";
-import QueuedStudentsTable from "../QueuedStudentsTable";
-import Comments from "./Comments.jsx";
-import toastr from "toastr";
-import { roleForUser } from "../../Utils";
+import React from 'react';
+import AvailableTas from '../AvailableTas';
+import QueuedStudentsTable from '../QueuedStudentsTable';
+import Comments from './Comments.jsx';
+import toastr from 'toastr';
+import { roleForUser } from '../../Utils';
 
 const isOnDuty = (user, course) => user.onDuty && user.onDutyCourse === course._id;
 
@@ -21,78 +21,106 @@ class Ta extends React.Component {
   }
 
   componentDidMount() {
-    const { client, user, course } = this.props;
-    const socket = client.get("socket");
-
-    // TODO: if on duty for another course, have msg to change status to this course
+    const { user, course } = this.props;
     this.setState({ numTas: 1, onDuty: isOnDuty(user, course) });
     this.getCurrentStudent();
-    this.updateQueueCount();
-
-    // Don't toast because QueuedStudentsTable toasts for us
-    socket.on("tokens created", this.updateQueueCount);
-    socket.on("tokens patched", this.updateQueueCount);
   }
 
-  componentWillUnmount() {
-    const socket = this.props.client.get("socket");
-    socket.removeListener("tokens created", this.updateQueueCount);
-    socket.removeListener("tokens patched", this.updateQueueCount);
-  }
+  queueUpdated = (studentQueue, studentsInQueue) => {
+    this.setState({ studentsInQueue });
+  };
 
   componentDidUpdate(prevProps, prevState) {
     // onDuty status updated
     if (!prevState.onDuty && this.state.onDuty) {
-      this.setPasscode();
+      if (this.props.course && this.props.course.requiresPasscode) {
+        this.setPasscode();
+      }
       this.getCurrentStudent();
     } else if (prevState.onDuty && !this.state.onDuty) {
       this.setState({ passcode: null });
     }
   }
 
-  updateQueueCount = () => {
-    const { client, course } = this.props;
-    client
-      .service("/tokens")
-      .find({
-        query: {
-          $limit: 0,
-          fulfilled: false,
-          course: course._id
-        }
-      })
-      .then(tickets => {
-        console.log({ studentsInQueue: tickets.total });
-        this.setState({ studentsInQueue: tickets.total });
-      })
-      .catch(console.error);
-  };
-
-  // TODO: make this work
   cancelAllTix = () => {
-    console.log("end oh");
+    const { client, course, user } = this.props;
+    const warningMsg =
+      'Warning: By ending office hours you will permanently cancel all tickets in the queue. Are you sure?';
+    if (!this.state.currentTicket && window.confirm(warningMsg)) {
+      client
+        .service('/tokens')
+        .patch(
+          null,
+          {
+            cancelledByTA: true,
+            fulfilled: true,
+            fulfilledBy: user._id,
+            fulfilledByName: user.name,
+            isClosed: true,
+            dequeuedAt: new Date(),
+            closedAt: new Date()
+          },
+          {
+            query: {
+              $limit: 100,
+              fulfilled: false,
+              course: course._id
+            }
+          }
+        )
+        .then(tickets => {
+          toastr.success('Successfully cancelled all tickets');
+        })
+        .catch(err => {
+          toastr.error('Could not cancel all tickets');
+          console.error(err);
+        });
+    }
   };
 
   toggleOH = () => {
-    const { client, course, user } = this.props;
+    const { client, course, user, api } = this.props;
     const onDuty = !this.state.onDuty;
-    client
-      .service("/users")
-      .patch(user._id, { onDuty, onDutyCourse: course._id })
-      .then(newMe => {
-        onDuty ? toastr.success("You have joined office hours") : toastr.success("You have left office hours");
+
+    fetch(`${api}/joinOH`, {
+      method: 'POST',
+      headers: {
+        Accept: 'application/json',
+        'Content-Type': 'application/json',
+        Authorization: client.get('jwt')
+      },
+      body: JSON.stringify({
+        isOnDuty: onDuty,
+        onDutyCourse: this.props.course._id
+      })
+    })
+      .then(res => res.json())
+      .then(onDutyStatus => {
         this.setState({ onDuty });
       })
       .catch(err => {
-        toastr.error("Cannot change on duty status");
-        console.log("Toggle OH error", err);
+        console.error(err);
+        toastr.error('Cound not update on duty status');
       });
+    /*
+    client
+      .service('/users')
+      .patch(user._id, { onDuty, onDutyCourse: course._id })
+      .then(newMe => {
+        onDuty ? toastr.success('You have joined office hours') : toastr.success('You have left office hours');
+        this.setState({ onDuty });
+      })
+      .catch(err => {
+        toastr.error('Cannot change on duty status');
+        console.log('Toggle OH error', err);
+      });
+      */
   };
 
   getCurrentStudent = () => {
     const { client, course, user } = this.props;
     client
-      .service("/tokens")
+      .service('/tokens')
       .find({
         query: {
           $limit: 1,
@@ -108,7 +136,7 @@ class Ta extends React.Component {
       })
       .then(tickets => {
         // Have a current student
-        let currentTicket;
+        let currentTicket = null;
         if (tickets.total > 0) {
           currentTicket = tickets.data[0];
         }
@@ -119,13 +147,13 @@ class Ta extends React.Component {
   dequeueStudent = () => {
     const { client, course } = this.props;
     client
-      .service("/dequeue-student")
-      .create({course: course._id})
+      .service('/dequeue-student')
+      .create({ course: course._id })
       .then(result => {
         this.getCurrentStudent();
       })
       .catch(err => {
-        console.error(err);
+        console.error('error dequeueStudent', err);
       });
   };
 
@@ -133,7 +161,7 @@ class Ta extends React.Component {
     const { client, course } = this.props;
 
     client
-      .service("/passcode")
+      .service('/passcode')
       .get(course._id)
       .then(res => {
         this.setState({ passcode: res.passcode });
@@ -141,84 +169,65 @@ class Ta extends React.Component {
   };
 
   markNoshow = () => {
-    const client = this.props.client;
-    if (!!this.state.currentTicket && window.confirm("Warning: Marking this student as a no show. Are you sure?")) {
-      client
-        .service("/tokens")
-        .patch(this.state.currentTicket._id, {
-          isBeingHelped: false,
-          isClosed: true,
-          noShow: true,
-          closedAt: Date.now()
-          // TODO: shouldIgnoreInTokenCount: false/true
+    const { client, api } = this.props;
+    if (this.state.currentTicket && window.confirm('Warning: Marking this student as a no show. Are you sure?')) {
+      fetch(`${api}/markNoShow`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: client.get('jwt')
+        },
+        body: JSON.stringify({
+          ticketId: this.state.currentTicket._id,
+          userId: this.state.currentTicket.user._id
         })
-        .then(updatedTicket => {
-          toastr.success("Student marked as a no-show and ticket closed");
+      })
+        .then(() => {
           this.getCurrentStudent();
+          toastr.success('Student marked as a no-show and ticket closed');
         })
         .catch(err => {
-          toastr.error("Could not mark student as a no-show");
-          console.error(err);
+          toastr.error('Could not mark ticket as no-show');
         });
     }
   };
 
   closeTicket = comment => {
-    const { client, course, user } = this.props;
-    if (!!this.state.currentTicket && window.confirm("Are you sure you want to permanently close this ticket?")) {
-      console.log('closing ticket');
-      client
-        .service("comment")
-        .create(comment)
-        .then(commentObj => {
-          //TODO put this in hook asap
-          client
-            .service("/users")
-            .get(user._id)
-            .then(res => {
-              var role = roleForUser(res, course);
-              // total tix for course
-              const tixForCourse = role.totalTickets ? role.totalTickets + 1 : 1;
-              // total tix for user
-              const totalTickets = res.totalTickets ? role.totalTickets + 1 : 1;
-              role.totalTickets = tixForCourse;
-              // TODO: patch role properly
-              client
-                .service("/users")
-                .patch(user._id, {
-                  totalTickets
-                })
-                .then(updatedStudent => {
-                  console.log(updatedStudent);
-                })
-                .catch(console.error);
-            });
-          return client.service("tokens").patch(this.state.currentTicket._id, {
-            isBeingHelped: false,
-            isClosed: true,
-            // TODO: move closedAt and other dates to service hooks
-            closedAt: Date.now(),
-            comment: commentObj._id
-          });
+    const { client, course, user, api } = this.props;
+    if (!!this.state.currentTicket && window.confirm('Are you sure you want to permanently close this ticket?')) {
+      // need: coure, ticket, comment, user,
+      fetch(`${api}/closeTicket`, {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+          Authorization: client.get('jwt')
+        },
+        body: JSON.stringify({
+          comment,
+          ticketId: this.state.currentTicket._id,
+          userId: this.state.currentTicket.user._id
         })
+      })
         .then(updatedTicket => {
-          toastr.success("Ticket closed and comment successfully saved");
+          toastr.success('Ticket closed and comment successfully saved');
           this.getCurrentStudent();
         })
         .catch(err => {
-          toastr.error("Could not close ticket");
+          toastr.error('Could not close ticket');
           console.error(err);
         });
     }
   };
 
   render() {
-    const { client } = this.props;
+    const { client, course } = this.props;
     if (!client) {
       return <div>Loading...</div>;
     }
     return (
-      <div className="row" style={{ paddingTop: "15px" }}>
+      <div className="row" style={{ paddingTop: '15px' }}>
         <div className="col-md-3">
           <AvailableTas {...this.props} />
           <hr />
@@ -226,15 +235,19 @@ class Ta extends React.Component {
             <div className="panel panel-default">
               <div className="panel-heading">You are hosting office hours</div>
               <div className="panel-body">
-                <h4>Hourly passcode:</h4>
-                <h2 className="passcode">
-                  <span className="label label-success">{this.state.passcode}</span>
-                </h2>
-                <hr />
+                {course.requiresPasscode && (
+                  <React.Fragment>
+                    <h4>Hourly passcode:</h4>
+                    <h2 className="passcode">
+                      <span className="label label-success">{this.state.passcode}</span>
+                    </h2>
+                    <hr />
+                  </React.Fragment>
+                )}
                 <button onClick={this.toggleOH} className="btn btn-default">
                   Leave office hours
                 </button>
-                <div className="alert alert-success alert-dismissable" role="alert" style={{ marginTop: "15px" }}>
+                <div className="alert alert-success alert-dismissable" role="alert" style={{ marginTop: '15px' }}>
                   <button type="button" className="close" data-dismiss="alert" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                   </button>
@@ -243,7 +256,7 @@ class Ta extends React.Component {
                 <hr />
                 <div id="end-oh-area">
                   <h4>End office hours:</h4>
-                  <button onClick={this.cancelAllTix} className="btn btn-warning" style={{ marginTop: "10px" }}>
+                  <button onClick={this.cancelAllTix} className="btn btn-warning" style={{ marginTop: '10px' }}>
                     Cancel all tickets
                   </button>
                 </div>
@@ -282,11 +295,11 @@ class Ta extends React.Component {
                 <div className="panel-heading">Student queue</div>
                 <div className="panel-body">
                   {this.state.studentsInQueue > 0 && (
-                    <button onClick={this.dequeueStudent} className="btn btn-success" style={{ marginBottom: "15px" }}>
+                    <button onClick={this.dequeueStudent} className="btn btn-success" style={{ marginBottom: '15px' }}>
                       Dequeue Student
                     </button>
                   )}
-                  <QueuedStudentsTable {...this.props} />
+                  <QueuedStudentsTable {...this.props} queueUpdated={this.queueUpdated} />
                 </div>
               </div>
             </div>
