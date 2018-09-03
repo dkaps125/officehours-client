@@ -20,7 +20,8 @@ class ListCourses extends React.Component {
 
   userCreate = () => {
     // TODO put somewhere else
-    fetch('http://localhost:3030/configure', {
+    const { api } = this.props;
+    fetch(`${api}/configure`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
