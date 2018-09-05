@@ -1,4 +1,5 @@
 import React from 'react';
+import toastr from 'toastr';
 
 class CSVUpload extends React.Component {
   constructor(props) {
@@ -24,8 +25,19 @@ class CSVUpload extends React.Component {
       })
       .then(body => {
         console.log(body);
+        if (body && body.status === 'success') {
+          toastr.success('CSV Processed');
+          if (this.props.loadUserRoster) {
+            this.props.loadUserRoster();
+          }
+        } else {
+          toastr.failure('Encountered an issue while processing CSV')
+        }
       })
-      .catch(console.error);
+      .catch((err) => {
+        console.log('CSVUpload', err);
+        toastr.failure('Encountered an issue while processing CSV')
+      });
   };
 
   render() {
@@ -37,8 +49,8 @@ class CSVUpload extends React.Component {
           Upload a CSV, must be comma separated. Names cannot contain commas.
           <br />
           Only include columns:
-          <strong> name,directoryID,role</strong>
-          where role is either "Instructor", "Student", or "TA" &nbsp
+          <strong>name,directoryID,course,role</strong>
+          where course is the course id (e.g. CMSC123) and role is either "Instructor", "Student", or "TA".
         </p>
         <br />
         <form onSubmit={this.handleFileUpload}>

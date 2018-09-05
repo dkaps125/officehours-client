@@ -85,7 +85,7 @@ class Instructor extends React.Component {
           <h3>Add user</h3>
           <UserAdd {...this.props} loadUserRoster={this.loadUserRoster} />
           <hr />
-          <h3>Bulk user creation</h3>
+          <h3>Bulk user addition</h3>
           <CSVUpload {...this.props} loadUserRoster={this.loadUserRoster} />
           <hr />
           <h3>Bulk user deletion</h3>

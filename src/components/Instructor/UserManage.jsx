@@ -139,8 +139,8 @@ class UserManage extends React.Component {
           Upload a CSV, must be comma separated. Names cannot contain commas.
           <br />
           Only include columns:
-          <strong>name,directoryID,role</strong>
-          where role is either "Instructor", "Student", or "TA"
+          <strong>name,directoryID,course,role</strong>
+          where course is the course id (e.g. CMSC123) and role is either "Instructor", "Student", or "TA".
         </p>
         <br />
         <CSVUpload {...this.props} />
