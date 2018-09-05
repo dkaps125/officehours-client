@@ -1,4 +1,4 @@
-name,directoryId,role
-First Last,firstlast,Student
-Mary Smith,marysmith,TA
-Doctor Professor,drprof,instructor
+name,directoryId,course,role
+Fake Instructor,fakeinstr,CMSC234,instructor
+Mary Smith,msmith,CMSC123,TA
+John Smith,jsmith,CMSC123,Student
