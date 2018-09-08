@@ -27,9 +27,9 @@ import {
 import { defaultContext, UserContext, withUser, withUserRequireCourse, __API } from './api/UserStore';
 
 const io = require('socket.io-client');
-const feathers = require('@feathersjs/feathers');
-const socketio = require('@feathersjs/socketio-client');
-const auth = require('@feathersjs/authentication-client');
+const feathers = require('@feathersjs/client');
+const { socketio } = feathers;
+const { authentication: auth } = feathers;
 
 const ConnectedLogin = withUser(Login);
 
