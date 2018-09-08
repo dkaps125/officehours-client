@@ -31,12 +31,12 @@ class CSVUpload extends React.Component {
             this.props.loadUserRoster();
           }
         } else {
-          toastr.failure('Encountered an issue while processing CSV')
+          toastr.error('Encountered an issue while processing CSV')
         }
       })
       .catch((err) => {
         console.log('CSVUpload', err);
-        toastr.failure('Encountered an issue while processing CSV')
+        toastr.error('Encountered an issue while processing CSV')
       });
   };
 
