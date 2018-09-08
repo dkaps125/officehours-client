@@ -44,7 +44,7 @@ class CSVUpload extends React.Component {
     //<form action="" method="post" encType="multipart/form-data" id="js-upload-form" accept=".csv">
     return (
       <div>
-        <a href="example.csv">Download example CSV file</a>
+        <a href='/example.csv'>Download example CSV file</a>
         <p>
           Upload a CSV, must be comma separated. Names cannot contain commas.
           <br />
