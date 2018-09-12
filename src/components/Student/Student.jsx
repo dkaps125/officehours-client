@@ -70,7 +70,7 @@ class Student extends React.Component {
         course: course._id
       }
     });
-    const getQueuePos = client.service('/queue-position').get({});
+    const getQueuePos = client.service('/queue-position').get(course._id);
     const getCurrentTicket = client.service('/tokens').find({
       query: {
         $limit: 1,
@@ -88,7 +88,7 @@ class Student extends React.Component {
         const numTokens = res[0].tokensRemaining;
         const numUnfulfilledTickets = res[1].total;
         const studentsInQueue = res[2].sizeOfQueue;
-        const numStudentsAheadOfMe = res[2].peopleAheadOfMe + 1;
+        const numStudentsAheadOfMe = res[2].peopleAheadOfMe;
         //const currentTicket = res[3].data.length > 0 ? res[3].data[0] : null;
         if (numUnfulfilledTickets === 0 && this.state.numUnfulfilledTickets > 0 && !this.state.lastTicketCancelled) {
           toastr.success('You have been dequeued by a TA!', { timeout: 15000 });
