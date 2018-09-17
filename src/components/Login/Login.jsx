@@ -49,7 +49,7 @@ class Login extends React.Component {
           <div className="login-box">
             {errorMsg}
             <div className="login-btn-box">
-              <p className="lead">Log in with your university credentials</p>
+              <p className="lead">Log in to Quuly Office Hours with your UMD credentials</p>
             </div>
             <div className="login-btn-box login-btn">
               <a className="btn btn-info btn-lg" role="button" onClick={this.handleLogin}>
