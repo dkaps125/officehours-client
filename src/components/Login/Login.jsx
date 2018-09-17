@@ -2,6 +2,13 @@ import React from 'react';
 import { Redirect, withRouter } from 'react-router-dom';
 import { __API } from '../../api/UserStore';
 
+
+const UserNotFoundError = () => (
+  <div className="alert alert-danger">
+    The directory ID you provided is not associated with any course. Please contact your professor.
+  </div>
+);
+
 class Login extends React.Component {
   componentDidMount() {
     document.body.classList.add('login-body');
@@ -31,23 +38,14 @@ class Login extends React.Component {
 
   render() {
     const { user, location } = this.props;
-    var errorMsg;
-
-    if (location.search === '?invalid') {
-      errorMsg = (
-        <div className="alert alert-danger">
-          The directory ID you provided is not associated with any course. Please contact your professor.
-        </div>
-      );
-    } else {
-      errorMsg = <div />;
-    }
 
     if (!user) {
       return (
         <main className="container login-container text-center">
           <div className="login-box">
-            {errorMsg}
+            {
+              location.search === '?invalid' ? <UserNotFoundError /> : null
+            }
             <div className="login-btn-box">
               <p className="lead">Log in to Quuly Office Hours with your UMD credentials</p>
             </div>
