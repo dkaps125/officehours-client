@@ -7,6 +7,12 @@ class AdminUsers extends React.Component {
     this.state = {};
   }
 
+  componentDidMount() {
+    if (this.props.course && this.props.propCourse) {
+      this.props.popCourse();
+    }
+  }
+
   handleInputChange = event => {
     const target = event.target;
     const value = target.type === 'checkbox' ? target.checked : target.value;

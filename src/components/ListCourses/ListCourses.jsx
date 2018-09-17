@@ -3,15 +3,15 @@ import { Link } from 'react-router-dom';
 import { getCourse, courseForId, routeForUser, hasAppPermission } from '../../Utils';
 
 class ListCourses extends React.Component {
-  /*
-  state = {};
 
   componentDidMount() {
-    this.getCourses();
+    console.log('CDM 1', this.props);
+    if (this.props.course && this.props.popCourse) {
+      console.log('CDM 2', this.props.popCourse);
+      this.props.popCourse();
+    }
   }
-  */
 
-  // TODO: this should be taken care of by the back end
   getMyCourses = allCourses => {
     const { user } = this.props;
 
@@ -22,19 +22,6 @@ class ListCourses extends React.Component {
       return courseForId(allCourses, role.course);
     });
   };
-
-  /*
-  getCourses = () => {
-    const client = this.props.client;
-    client
-      .service("/courses")
-      .find()
-      .then(courses => {
-        this.setState({ courses: courses.data });
-      })
-      .catch(console.error);
-  };
-  */
 
   courseListing = course => (
     <div className="panel panel-danger" key={course.courseid || course.toString()}>

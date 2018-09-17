@@ -41,7 +41,7 @@ class App extends React.Component {
     if (course && isString(course.courseid) && isString(course._id)) {
       localStorage.setItem('lastCourse', course);
       if (!this.state.course || this.state.course._id != course._id) {
-        toastr.info(`Welcome to ${course.courseid} office hours`, null, { timeOut: 2500 });
+        toastr.info(`Welcome to ${course.courseid} office hours. Powered by Quuly`, null, { timeOut: 2500 });
       }
       const socket = this.state.client.get('socket');
       socket.emit('join course', course._id);
@@ -75,13 +75,15 @@ class App extends React.Component {
     }
   };
 
-  // TODO: call when exiting to a container without course required
   popCourse = () => {
     const { course } = this.state;
+    console.log('course is null');
     if (course && isString(course.courseid) && isString(course._id)) {
       localStorage.setItem('lastCourse', course);
     }
-    this.setState({ course: null });
+    if (course) {
+      this.setState({ course: null });
+    }
   };
 
   logout = () => {
@@ -112,7 +114,12 @@ class App extends React.Component {
       );
     client.set('socket', socket);
 
-    this.state = Object.assign(defaultContext, { client, setCourse: this.setCourse, logout: this.logout });
+    this.state = Object.assign(defaultContext, {
+      client,
+      setCourse: this.setCourse,
+      logout: this.logout,
+      popCourse: this.popCourse
+    });
 
     const users = client.service('/users');
     const courses = client.service('/courses');
@@ -195,6 +202,9 @@ class App extends React.Component {
                 <ConnectedLogin />
               )}
             </div>
+            {
+              // Hide for now <Footer />
+            }
           </React.Fragment>
         </UserContext.Provider>
       </Router>
@@ -265,53 +275,54 @@ class Nav extends React.Component {
               <span className="icon-bar" />
             </button>
             <a className="navbar-brand dropdown-toggle" data-toggle="dropdown" href="#">
-              {((courseId && courseId.toUpperCase()) || '') + ' Office Hours'}
-              <span className="caret" />
+              {(courseId && `${courseId.toUpperCase()} Office hours`) || 'Quuly'}
+              {user ? <span className="caret" /> : null}
             </a>
-            <ul className="dropdown-menu" style={{ marginLeft: '25px' }}>
-              {recentCourses && (
-                <React.Fragment>
-                  <li>
-                    <a>Recent courses</a>
-                  </li>
-                  <li role="separator" className="divider" />
-                  {recentCourses.map(
-                    course =>
-                      course && (
-                        <li key={course._id + '_list'}>
-                          <Link
-                            key={'nav_' + course._id}
-                            to={routeForUser(user, course)}
-                            onClick={() => {
-                              this.props.setCourse(course);
-                            }}
-                          >
-                            {course.courseid}
-                          </Link>
-                        </li>
-                      )
-                  )}
-                </React.Fragment>
-              )}
-              <li role="separator" className="divider" />
-              <li>
-                <Link to="/courses">All courses</Link>
-              </li>
-              {/*should we put a "manage course" dupe link to instr dashboard?*/}
-              {(hasAppPermission(user, 'admin') || hasAppPermission(user, 'user_mod')) && (
+            {
+              user ? <ul className="dropdown-menu" style={{ marginLeft: '25px' }}>
+                {recentCourses && (
+                  <React.Fragment>
+                    <li>
+                      <a>Recent courses</a>
+                    </li>
+                    <li role="separator" className="divider" />
+                    {recentCourses ? recentCourses.map(
+                      course =>
+                        course ? (
+                          <li key={course._id + '_list'}>
+                            <Link
+                              key={'nav_' + course._id}
+                              to={routeForUser(user, course)}
+                              onClick={() => {
+                                this.props.setCourse(course);
+                              }}
+                            >
+                              {course.courseid}
+                            </Link>
+                          </li>
+                        ) : null
+                    ) : null}
+                  </React.Fragment>
+                )}
+                <li role="separator" className="divider" />
                 <li>
-                  <Link to="/admin_users">Manage users</Link>
+                  <Link to="/courses">All courses</Link>
                 </li>
-              )}
-              {(hasAppPermission(user, 'admin') || hasAppPermission(user, 'course_create')) && (
-                <React.Fragment>
-                  <li role="separator" className="divider" />
+                {(hasAppPermission(user, 'admin') || hasAppPermission(user, 'user_mod')) ? (
                   <li>
-                    <Link to="/create_course">+ New Course</Link>
+                    <Link to="/admin_users">Manage users</Link>
                   </li>
-                </React.Fragment>
-              )}
-            </ul>
+                ) : null}
+                {(hasAppPermission(user, 'admin') || hasAppPermission(user, 'course_create')) ? (
+                  <React.Fragment>
+                    <li role="separator" className="divider" />
+                    <li>
+                      <Link to="/create_course">+ New Course</Link>
+                    </li>
+                  </React.Fragment>
+                ) : null}
+              </ul> : null
+            }
           </div>
           <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul className="nav navbar-nav">
@@ -325,7 +336,7 @@ class Nav extends React.Component {
                 (hasAppPermission(user, 'admin') || hasAppPermission(user, 'user_view')) &&
                 this.genLink('tickets', 'Course Ticket History')}
               {course && hasCoursePermission(course, user, 'Student') && this.genLink('students', 'Home')}
-              {!course && (
+              {!course && user && (
                 <li>
                   <Link to="/courses">Select a course</Link>
                 </li>
@@ -355,5 +366,25 @@ class Nav extends React.Component {
 }
 
 const RoutedNav = withUser(withRouter(Nav));
+
+const Footer = () => (
+  <footer
+    className={'footer'}
+    style={{
+      position: 'fixed',
+      width: '100%',
+      height: '40px',
+      lineHeight: '40px',
+      bottom: 0,
+      display: 'block',
+      backgroundColor: '#990000',
+      marginTop: '10px'
+    }}
+  >
+    <div className="container">
+      <p style={{ color: 'white' }}>© 2018 quuly.com; University of Maryland</p>
+    </div>
+  </footer>
+);
 
 export default App;

@@ -5,35 +5,18 @@ class CreateCourseWizard extends React.Component {
   constructor(props) {
     super(props);
     this.state = {
-      /*title: '',
-      courseid: '',
-      //ohURL: '',
-      numTokens: 2, */
       requiresPasscode: false,
       semester: {
         term: 'Fall',
         year: 2018
       }
     };
-
-    //const user = props.client.get('user');
-    //const socket = props.client.get('socket');
-  }
-
-  componentWillUnmount() {
   }
 
   componentDidMount() {
-
-  }
-
-  componentDidUpdate(prevProps, prevState) {
-
-  }
-
-  toastAndUpdate = (msg, cb) => {
-    toastr.success(msg);
-    cb();
+    if (this.props.course && this.props.propCourse) {
+      this.props.popCourse();
+    }
   }
 
   handleInputChange = (event) => {
