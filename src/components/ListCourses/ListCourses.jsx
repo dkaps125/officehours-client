@@ -3,11 +3,8 @@ import { Link } from 'react-router-dom';
 import { getCourse, courseForId, routeForUser, hasAppPermission } from '../../Utils';
 
 class ListCourses extends React.Component {
-
   componentDidMount() {
-    console.log('CDM 1', this.props);
     if (this.props.course && this.props.popCourse) {
-      console.log('CDM 2', this.props.popCourse);
       this.props.popCourse();
     }
   }

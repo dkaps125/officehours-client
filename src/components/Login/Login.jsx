@@ -60,7 +60,6 @@ class Login extends React.Component {
       //TODO: also check to see if window.location is valid for a route
     } else {
       const nextRoute = this.getNextRoute();
-      console.log('next rt', nextRoute);
       if (nextRoute && window.location.pathname !== nextRoute) {
         return <Redirect to={{ pathname: nextRoute, state: { from: window.location.pathname } }} />;
       } else {

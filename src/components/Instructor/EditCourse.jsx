@@ -7,7 +7,8 @@ class EditCourse extends React.Component {
     title: null,
     ohURL: null,
     requiresPasscode: false,
-    dailyTokens: null
+    dailyTokens: null,
+    studentMessaging: null
   };
 
   constructor(props) {
@@ -18,8 +19,11 @@ class EditCourse extends React.Component {
         title: course.title,
         ohURL: course.ohURL,
         requiresPasscode: course.requiresPasscode,
-        dailyTokens: course.dailyTokens
+        dailyTokens: course.dailyTokens,
       };
+      if (course.studentMessaging) {
+        this.state.studentMessaging = course.studentMessaging;
+      }
     }
   }
 
@@ -97,6 +101,7 @@ class EditCourse extends React.Component {
               autoComplete="off"
               value={this.state.title}
               onChange={this.handleInputChange}
+              maxLength={140}
             />
           </div>
           <div className="form-group">
@@ -109,6 +114,20 @@ class EditCourse extends React.Component {
               autoComplete="off"
               value={this.state.ohURL}
               onChange={this.handleInputChange}
+            />
+          </div>
+          <div className="form-group">
+            <label htmlFor="studentMessaging">Student Messaging</label>
+            <input
+              type="text"
+              className="form-control"
+              id="studentMessaging"
+              name="studentMessaging"
+              autoComplete="true"
+              value={this.state.studentMessaging}
+              onChange={this.handleInputChange}
+              placeholder="Display a message to students before they submit a ticket"
+              maxLength={300}
             />
           </div>
           <div className="form-group">

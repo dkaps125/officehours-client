@@ -275,11 +275,16 @@ class Ta extends React.Component {
           <hr />
         </div>
         <div className="col-md-9">
-          <p className="lead">
-            Students in queue:&nbsp;
-            <strong id="students-in-queue">{this.state.studentsInQueue}</strong>
-          </p>
-          <hr />
+          {this.state.onDuty ? (
+            <React.Fragment>
+              <p className="lead">
+                Students in queue:&nbsp;
+                <strong id="students-in-queue">{this.state.studentsInQueue}</strong>
+              </p>
+              <hr />
+            </React.Fragment>
+          ) : null}
+
           {this.state.onDuty ? (
             <div>
               {this.state.currentTicket && (
@@ -291,7 +296,7 @@ class Ta extends React.Component {
                 />
               )}
 
-              <div id="student-queue-area" className="panel panel-default">
+              <div id="student-queue-area" className="panel panel-default" style={{marginBottom: '40px'}}>
                 <div className="panel-heading">Student queue</div>
                 <div className="panel-body">
                   {this.state.studentsInQueue > 0 && (

@@ -252,7 +252,7 @@ class Student extends React.Component {
             <strong id="students-in-queue"> {this.state.studentsInQueue}</strong>
           </p>
           <hr />
-          <div className="panel panel-default">
+          <div className="panel panel-default" style={{marginBottom: '40px'}}>
             <div className="panel-heading">Request Office Hours</div>
             <div className="panel-body">
               {this.state.numUnfulfilledTickets === 0 && !this.state.currentTicket ? (
@@ -286,9 +286,11 @@ class Student extends React.Component {
                       autoComplete="off"
                     />
                     <br />
-                    <div className="alert alert-warning">
-                      Make sure your code is checked into the submit server before your session starts.
-                    </div>
+                    {this.props.course.studentMessaging ? (
+                      <div className="alert alert-warning">
+                        {this.props.course.studentMessaging}
+                      </div>
+                    ) : null}
                     <button id="ticket-button" type="submit" className="btn btn-default">
                       Request help
                     </button>

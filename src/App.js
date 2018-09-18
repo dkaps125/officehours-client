@@ -41,7 +41,7 @@ class App extends React.Component {
     if (course && isString(course.courseid) && isString(course._id)) {
       localStorage.setItem('lastCourse', course);
       if (!this.state.course || this.state.course._id != course._id) {
-        toastr.info(`Welcome to ${course.courseid} office hours. Powered by Quuly`, null, { timeOut: 2500 });
+        toastr.info(`Welcome to ${course.courseid} office hours by Quuly.`, null, { timeOut: 2500 });
       }
       const socket = this.state.client.get('socket');
       socket.emit('join course', course._id);
@@ -77,7 +77,6 @@ class App extends React.Component {
 
   popCourse = () => {
     const { course } = this.state;
-    console.log('course is null');
     if (course && isString(course.courseid) && isString(course._id)) {
       localStorage.setItem('lastCourse', course);
     }
@@ -169,6 +168,7 @@ class App extends React.Component {
   }
 
   render() {
+    // TODO: look into refactoring with https://github.com/ReactTraining/react-router/blob/v3/docs/API.md#named-components
     return (
       <Router>
         {/* Bind the user context provider to the app's state */}
@@ -203,6 +203,11 @@ class App extends React.Component {
               )}
             </div>
             {
+              <React.Fragment>
+                <Route path="/:course/ta" component={Footer} />
+                <Route path="/:course/student" component={Footer} />
+                <Route path="/:course/courses" component={Footer} />
+              </React.Fragment>
               // Hide for now <Footer />
             }
           </React.Fragment>
@@ -278,42 +283,44 @@ class Nav extends React.Component {
               {(courseId && `${courseId.toUpperCase()} Office hours`) || 'Quuly'}
               {user ? <span className="caret" /> : null}
             </a>
-            {
-              user ? <ul className="dropdown-menu" style={{ marginLeft: '25px' }}>
+            {user ? (
+              <ul className="dropdown-menu" style={{ marginLeft: '25px' }}>
                 {recentCourses && (
                   <React.Fragment>
                     <li>
                       <a>Recent courses</a>
                     </li>
                     <li role="separator" className="divider" />
-                    {recentCourses ? recentCourses.map(
-                      course =>
-                        course ? (
-                          <li key={course._id + '_list'}>
-                            <Link
-                              key={'nav_' + course._id}
-                              to={routeForUser(user, course)}
-                              onClick={() => {
-                                this.props.setCourse(course);
-                              }}
-                            >
-                              {course.courseid}
-                            </Link>
-                          </li>
-                        ) : null
-                    ) : null}
+                    {recentCourses
+                      ? recentCourses.map(
+                          course =>
+                            course ? (
+                              <li key={course._id + '_list'}>
+                                <Link
+                                  key={'nav_' + course._id}
+                                  to={routeForUser(user, course)}
+                                  onClick={() => {
+                                    this.props.setCourse(course);
+                                  }}
+                                >
+                                  {course.courseid}
+                                </Link>
+                              </li>
+                            ) : null
+                        )
+                      : null}
                   </React.Fragment>
                 )}
                 <li role="separator" className="divider" />
                 <li>
                   <Link to="/courses">All courses</Link>
                 </li>
-                {(hasAppPermission(user, 'admin') || hasAppPermission(user, 'user_mod')) ? (
+                {hasAppPermission(user, 'admin') || hasAppPermission(user, 'user_mod') ? (
                   <li>
                     <Link to="/admin_users">Manage users</Link>
                   </li>
                 ) : null}
-                {(hasAppPermission(user, 'admin') || hasAppPermission(user, 'course_create')) ? (
+                {hasAppPermission(user, 'admin') || hasAppPermission(user, 'course_create') ? (
                   <React.Fragment>
                     <li role="separator" className="divider" />
                     <li>
@@ -321,8 +328,8 @@ class Nav extends React.Component {
                     </li>
                   </React.Fragment>
                 ) : null}
-              </ul> : null
-            }
+              </ul>
+            ) : null}
           </div>
           <div className="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
             <ul className="nav navbar-nav">
@@ -336,11 +343,12 @@ class Nav extends React.Component {
                 (hasAppPermission(user, 'admin') || hasAppPermission(user, 'user_view')) &&
                 this.genLink('tickets', 'Course Ticket History')}
               {course && hasCoursePermission(course, user, 'Student') && this.genLink('students', 'Home')}
-              {!course && user && (
-                <li>
-                  <Link to="/courses">Select a course</Link>
-                </li>
-              )}
+              {!course &&
+                user && (
+                  <li>
+                    <Link to="/courses">Select a course</Link>
+                  </li>
+                )}
               {ohURL && (
                 <li>
                   <a className="oh-sched-link" href={ohURL}>
@@ -373,16 +381,18 @@ const Footer = () => (
     style={{
       position: 'fixed',
       width: '100%',
-      height: '40px',
-      lineHeight: '40px',
+      height: '30px',
+      lineHeight: '30px',
       bottom: 0,
       display: 'block',
-      backgroundColor: '#990000',
-      marginTop: '10px'
+      backgroundColor: '#ebebeb',
+      marginTop: '10px',
+      textAlign: 'center',
+      opacity: 0.8
     }}
   >
     <div className="container">
-      <p style={{ color: 'white' }}>© 2018 quuly.com; University of Maryland</p>
+      <p style={{ color: '#990000' }}>Powered by Quuly.com</p>
     </div>
   </footer>
 );
