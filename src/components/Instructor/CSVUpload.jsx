@@ -1,5 +1,6 @@
 import React from 'react';
 import toastr from 'toastr';
+import { __API } from '../../api/UserStore';
 
 class CSVUpload extends React.Component {
   constructor(props) {
@@ -44,7 +45,7 @@ class CSVUpload extends React.Component {
     //<form action="" method="post" encType="multipart/form-data" id="js-upload-form" accept=".csv">
     return (
       <div>
-        <a href='/example.csv' target="_self">Download example CSV file</a>
+        <a href={`${__API}/example.csv`} target="_self">Download example CSV file</a>
         <p>
           Upload a CSV, must be comma separated. Names cannot contain commas.
           <br />
