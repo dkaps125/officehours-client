@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { getCourse, courseForId, routeForUser } from '../../Utils';
+import { __API } from '../../api/UserStore';
 
-class ListCourses extends React.Component {
+class Configure extends React.Component {
   state = {
     name: '',
     directoryID: ''
@@ -20,8 +21,8 @@ class ListCourses extends React.Component {
 
   userCreate = () => {
     // TODO put somewhere else
-    const { api } = this.props;
-    fetch(`${api}/configure`, {
+    const {  } = this.props;
+    fetch(`${__API}/configure`, {
       method: 'POST',
       headers: {
         'Accept': 'application/json',
@@ -70,4 +71,4 @@ class ListCourses extends React.Component {
   }
 }
 
-export default ListCourses;
+export default Configure;
