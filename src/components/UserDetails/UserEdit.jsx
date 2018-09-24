@@ -22,8 +22,12 @@ class UserEdit extends React.Component {
 
   handleInputChange = event => {
     const target = event.target;
-    const value = target.type === 'checkbox' ? target.checked : target.value;
+    let value = target.type === 'checkbox' ? target.checked : target.value;
     const name = target.name;
+
+    if (name === 'directoryID') {
+      value = value.replace(/\s/g,'');
+    }
 
     this.setState({
       [name]: value
