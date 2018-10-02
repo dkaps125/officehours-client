@@ -113,6 +113,8 @@ class App extends React.Component {
       );
     client.set('socket', socket);
 
+    window.client = client;
+
     this.state = Object.assign(defaultContext, {
       client,
       setCourse: this.setCourse,
