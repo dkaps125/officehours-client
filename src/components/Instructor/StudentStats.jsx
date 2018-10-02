@@ -168,8 +168,12 @@ class StudentStats extends React.Component {
               totalTickets: -1
             },
             $limit: 10,
-            role: "Student",
-            course: course._id
+            roles: {
+              $elemMatch: {
+                privilege: 'Student',
+                course: course._id
+              }
+            },
           }
         });
       })
@@ -248,7 +252,12 @@ class StudentStats extends React.Component {
               totalTickets: -1
             },
             $limit: 10,
-            $or: [{ role: "TA" }, { role: "Instructor" }]
+            roles: {
+              $elemMatch: {
+                $or: [{ privilege: "Instructor" }, { privilege: "TA" }],
+                course: course._id
+              }
+            },
           }
         });
       })
