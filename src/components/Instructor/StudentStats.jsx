@@ -41,6 +41,8 @@ class StudentStats extends React.Component {
       .service("tokens")
       .find({
         query: {
+          // course required outside of aggregate because of my dumb backend validation
+          course: course._id,
           _aggregate: [
             {
               $match: {
@@ -71,6 +73,7 @@ class StudentStats extends React.Component {
         }
         return client.service("/tokens").find({
           query: {
+            course: course._id,
             _aggregate: [
               {
                 $match: {
@@ -109,7 +112,12 @@ class StudentStats extends React.Component {
         this.setState({ taSessionsPerWeek });
         return client.service("users").find({
           query: {
-            $or: [{ role: "Instructor" }, { role: "TA" }],
+            roles: {
+              $elemMatch: {
+                $or: [{ privilege: "Instructor" }, { privilege: "TA" }],
+                course: course._id
+              }
+            },
             $limit: 0
           }
         });
