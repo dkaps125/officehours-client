@@ -165,13 +165,16 @@ class StudentStats extends React.Component {
               $gt: 0
             },
             $sort: {
-              totalTickets: -1
+              "roles.totalTickets": -1
             },
             $limit: 10,
             roles: {
               $elemMatch: {
                 privilege: 'Student',
-                course: course._id
+                course: course._id,
+                totalTickets: {
+                  $gt: 0
+                }
               }
             },
           }
@@ -245,17 +248,17 @@ class StudentStats extends React.Component {
 
         return client.service("users").find({
           query: {
-            totalTickets: {
-              $gt: 0
-            },
             $sort: {
-              totalTickets: -1
+              "roles.totalTickets": -1
             },
             $limit: 10,
             roles: {
               $elemMatch: {
                 $or: [{ privilege: "Instructor" }, { privilege: "TA" }],
-                course: course._id
+                course: course._id,
+                totalTickets: {
+                  $gt: 0
+                }
               }
             },
           }
