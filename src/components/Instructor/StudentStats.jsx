@@ -51,7 +51,7 @@ class StudentStats extends React.Component {
                 cancelledByStudent: false,
                 fulfilled: true,
                 isBeingHelped: false,
-                course: course._id
+                // course: course._id
               }
             },
             {
@@ -82,7 +82,7 @@ class StudentStats extends React.Component {
                   cancelledByStudent: false,
                   fulfilled: true,
                   isBeingHelped: false,
-                  course: course._id
+                  // course: course._id
                 }
               },
               {
@@ -186,13 +186,13 @@ class StudentStats extends React.Component {
           const user = res.data[i];
           var getAvgTicketsWeek = client.service("/tokens").find({
             query: {
+              course: course._id,
               _aggregate: [
                 {
                   $match: {
                     fulfilledBy: user._id,
                     fulfilled: true,
                     isBeingHelped: false,
-                    course: course._id
                   }
                 },
                 {
@@ -270,13 +270,13 @@ class StudentStats extends React.Component {
           const user = res.data[i];
           var getAvgTicketsWeek = client.service("/tokens").find({
             query: {
+              course: course._id,
               _aggregate: [
                 {
                   $match: {
                     fulfilledBy: user._id,
                     fulfilled: true,
                     isBeingHelped: false,
-                    course: course._id
                   }
                 },
                 {
