@@ -1,7 +1,7 @@
 import React from "react";
 import ListCourses from "../components/ListCourses";
 
-const __API = 'http://localhost:3030';
+const __API = window.__API;
 
 const defaultContext = {
   api: __API,
